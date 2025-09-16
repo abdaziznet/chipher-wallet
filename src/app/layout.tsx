@@ -46,19 +46,25 @@ export default function RootLayout({
     }
   }, [isLoaded, currentUser, pathname, router]);
 
-  if (!isLoaded || (!currentUser && pathname !== '/login')) {
-    return (
-      <html lang="en" suppressHydrationWarning>
-        <head>
-          <title>CipherWallet</title>
-        </head>
-        <body className="font-body antialiased">
-          <div className="flex h-screen items-center justify-center">
-            {/* You can add a loading spinner here */}
-          </div>
-        </body>
-      </html>
-    );
+  const renderLoading = () => (
+     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>CipherWallet</title>
+      </head>
+      <body className="font-body antialiased" suppressHydrationWarning>
+        <div className="flex h-screen items-center justify-center">
+          {/* You can add a loading spinner here */}
+        </div>
+      </body>
+    </html>
+  );
+
+  if (!isLoaded) {
+    return renderLoading();
+  }
+
+  if (!currentUser && pathname !== '/login') {
+    return renderLoading();
   }
   
   if (pathname === '/login') {
@@ -67,7 +73,7 @@ export default function RootLayout({
         <head>
           <title>Login - CipherWallet</title>
         </head>
-        <body className="font-body antialiased bg-background">
+        <body className="font-body antialiased bg-background" suppressHydrationWarning>
           <main className="flex h-screen items-center justify-center">{children}</main>
         </body>
       </html>
