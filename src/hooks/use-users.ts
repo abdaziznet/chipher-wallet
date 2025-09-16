@@ -6,8 +6,8 @@ import * as CryptoJS from 'crypto-js';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
-const USERS_STORAGE_KEY = 'cipherwallet-users';
-const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-current-user-id';
+const USERS_STORAGE_KEY = 'cipherwallet-auth-users';
+const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-auth-current-user-id';
 const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
 // This default user will be created on first load if no users exist.
