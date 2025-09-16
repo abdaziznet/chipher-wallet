@@ -7,6 +7,7 @@ import {
   FileUp,
   Search,
   KeyRound,
+  FileDown,
 } from 'lucide-react';
 import {
   Card,
@@ -37,10 +38,13 @@ import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
 import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [passwords, setPasswords] = React.useState<PasswordEntry[]>(mockPasswords);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
     setPasswords((prev) => [
@@ -73,6 +77,58 @@ export default function PasswordsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      try {
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        const header = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const requiredHeaders = ['appName', 'username', 'password'];
+        if (!requiredHeaders.every(h => header.includes(h))) {
+            throw new Error('Invalid CSV header. Must include appName, username, and password.');
+        }
+
+        const newPasswords: PasswordEntry[] = lines.slice(1).map((line, index) => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const entry: Omit<PasswordEntry, 'id'> = {
+            appName: values[header.indexOf('appName')] || '',
+            username: values[header.indexOf('username')] || '',
+            password: values[header.indexOf('password')] || '',
+            website: values[header.indexOf('website')] || '',
+          };
+          if (!entry.appName || !entry.username || !entry.password) {
+            throw new Error(`Invalid data on line ${index + 2}. appName, username, and password are required.`);
+          }
+          return { id: `pw_import_${Date.now()}_${index}`, ...entry };
+        });
+
+        setPasswords(prev => [...prev, ...newPasswords]);
+        toast({
+          title: 'Import Successful',
+          description: `${newPasswords.length} passwords have been imported.`,
+        });
+      } catch (error) {
+        console.error('Failed to parse CSV:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Import Failed',
+          description: error instanceof Error ? error.message : 'Could not parse the CSV file. Please check the format.',
+        });
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input
+    event.target.value = '';
+  };
+
   const filteredPasswords = passwords.filter(
     (p) =>
       p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,6 +148,17 @@ export default function PasswordsPage() {
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImport}
+            className="hidden"
+            accept=".csv"
+          />
+          <Button variant="outline" onClick={handleImportClick}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Import
+          </Button>
           <Button variant="outline" onClick={handleExport}>
             <FileUp className="mr-2 h-4 w-4" />
             Export
