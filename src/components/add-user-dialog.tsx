@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import * as CryptoJS from 'crypto-js';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,6 +17,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { User } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
 interface AddUserDialogProps {
   children: React.ReactNode;
@@ -25,16 +29,27 @@ interface AddUserDialogProps {
 export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
   const [open, setOpen] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
+  const { toast } = useToast();
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const newUser = {
+    const password = formData.get('password') as string;
+    
+    const newUser: Omit<User, 'id'> = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       role: (formData.get('role') as 'guest' | 'admin') || 'guest',
+      password: CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString(),
     };
+    
     onAddUser(newUser);
+    
+    toast({
+      title: 'User Added',
+      description: `The profile for ${newUser.name} has been created.`,
+    });
+    
     setOpen(false);
     formRef.current?.reset();
   };
@@ -72,6 +87,18 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                 name="email"
                 type="email"
                 placeholder="john.doe@example.com"
+                className="col-span-3"
+                required
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
                 className="col-span-3"
                 required
               />

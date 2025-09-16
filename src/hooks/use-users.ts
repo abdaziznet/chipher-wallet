@@ -2,16 +2,21 @@
 'use client';
 
 import * as React from 'react';
+import * as CryptoJS from 'crypto-js';
 import type { User } from '@/lib/types';
 
 const USERS_STORAGE_KEY = 'cipherwallet-users';
 const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-current-user-id';
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
+// This default user will be created on first load if no users exist.
+// The password is 'admin'.
 const defaultAdmin: User = {
   id: 'admin_01',
   name: 'Admin',
   email: 'admin@example.com',
   role: 'admin',
+  password: CryptoJS.AES.encrypt('admin', ENCRYPTION_KEY).toString(),
 };
 
 export function useUsers() {
