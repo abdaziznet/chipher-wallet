@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,7 +43,8 @@ export function EditUserDialog({ user, onEditUser, onOpenChange }: EditUserDialo
       ...user,
       name: formData.get('name') as string,
       email: formData.get('email') as string,
-      role: (formData.get('role') as 'guest' | 'admin') || 'guest',
+      // Role is not editable, it's determined by login
+      role: user.role,
       password: password 
         ? CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString() 
         : user.password,
@@ -106,19 +106,6 @@ export function EditUserDialog({ user, onEditUser, onOpenChange }: EditUserDialo
                 className="col-span-3"
                 placeholder="Leave blank to keep current"
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Role</Label>
-              <RadioGroup name="role" defaultValue={user.role} className="col-span-3 flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="guest" id="role-guest" />
-                  <Label htmlFor="role-guest">Guest</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="admin" id="role-admin" />
-                  <Label htmlFor="role-admin">Admin</Label>
-                </div>
-              </RadioGroup>
             </div>
           </div>
         </form>

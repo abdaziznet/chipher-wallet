@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,7 +47,7 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     const newUser: Omit<User, 'id'> = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
-      role: (formData.get('role') as 'guest' | 'admin') || 'guest',
+      role: 'guest', // Always guest role for new users
       password: CryptoJS.AES.encrypt(password, ENCRYPTION_KEY).toString(),
     };
     
@@ -111,19 +110,6 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
                 className="col-span-3"
                 required
               />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">Role</Label>
-              <RadioGroup name="role" defaultValue="guest" className="col-span-3 flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="guest" id="role-guest" />
-                  <Label htmlFor="role-guest">Guest</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="admin" id="role-admin" />
-                  <Label htmlFor="role-admin">Admin</Label>
-                </div>
-              </RadioGroup>
             </div>
           </div>
         </form>

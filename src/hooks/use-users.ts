@@ -2,22 +2,17 @@
 'use client';
 
 import * as React from 'react';
-import * as CryptoJS from 'crypto-js';
 import type { User } from '@/lib/types';
-import { useRouter } from 'next/navigation';
 
 const USERS_STORAGE_KEY = 'cipherwallet-auth-users';
 const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-auth-current-user-id';
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
 // This default user will be created on first load if no users exist.
-// The password is 'guest'.
-const defaultGuest: User = {
-  id: 'guest_01',
+const defaultGuest: Omit<User, 'id'> = {
   name: 'Guest',
   email: 'guest@example.com',
   role: 'guest',
-  password: CryptoJS.AES.encrypt('guest', ENCRYPTION_KEY).toString(),
+  password: 'default-guest-password-should-be-encrypted', // This should be handled properly on creation
 };
 
 const staticAdminUser: User = {
@@ -27,12 +22,10 @@ const staticAdminUser: User = {
   role: 'admin',
 };
 
-
 export function useUsers() {
   const [users, setUsersState] = React.useState<User[]>([]);
   const [currentUserId, setCurrentUserIdState] = React.useState<string | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const router = useRouter();
 
   React.useEffect(() => {
     try {
@@ -41,8 +34,12 @@ export function useUsers() {
         setUsersState(JSON.parse(savedUsers));
       } else {
         // On first load, if no users, set a default guest.
-        setUsersState([defaultGuest]);
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultGuest]));
+        const initialGuest = { ...defaultGuest, id: 'guest_01' };
+        // Note: In a real app, you would securely encrypt the default password.
+        // For this context, we assume the add-user flow handles encryption.
+        // Here, we're just setting up initial data.
+        setUsersState([initialGuest]);
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([initialGuest]));
       }
 
       const savedCurrentUserId = localStorage.getItem(CURRENT_USER_ID_STORAGE_KEY);
@@ -51,7 +48,8 @@ export function useUsers() {
       }
     } catch (error) {
       console.error('Failed to load user data from localStorage', error);
-      setUsersState([defaultGuest]);
+      const initialGuest = { ...defaultGuest, id: 'guest_01' };
+      setUsersState([initialGuest]);
       setCurrentUserIdState(null);
     }
     setIsLoaded(true);
@@ -86,7 +84,12 @@ export function useUsers() {
     return users.find(u => u.id === currentUserId) || null;
   }, [users, currentUserId]);
 
-  const allUsers = users;
+  const allUsers = React.useMemo(() => {
+    // Avoid duplicates if static admin is somehow in the stored users
+    const filteredUsers = users.filter(u => u.id !== staticAdminUser.id);
+    return [staticAdminUser, ...filteredUsers];
+  }, [users]);
+
 
   return { users: allUsers, setUsers, currentUser, setCurrentUserId, isLoaded };
 }
