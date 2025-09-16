@@ -21,7 +21,7 @@ import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'your-secret-key-here';
 // Static admin user: username 'abdaziz', password 'Biidznill@hAMS157'
 const STATIC_ADMIN_USERNAME = 'abdaziz';
-const STATIC_ADMIN_ENCRYPTED_PASSWORD = 'U2FsdGVkX1/qV0xYyK7kL2O7z8Bw5xL8J8p7rX7fF9R6kG7wF4h3Z2kX8Y3vS8K';
+const STATIC_ADMIN_PASSWORD = 'Biidznill@hAMS157';
 
 export default function LoginPage() {
   const { users, setCurrentUserId, currentUser } = useUsers();
@@ -43,17 +43,7 @@ export default function LoginPage() {
 
     // Handle static admin login
     if (username.toLowerCase() === STATIC_ADMIN_USERNAME) {
-      let decryptedPassword = '';
-      try {
-        const bytes = CryptoJS.AES.decrypt(STATIC_ADMIN_ENCRYPTED_PASSWORD, ENCRYPTION_KEY);
-        decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-      } catch (e) {
-        console.error('Decryption failed for static admin', e);
-        setError('An error occurred during login.');
-        return;
-      }
-
-      if (decryptedPassword === password) {
+      if (password === STATIC_ADMIN_PASSWORD) {
         setCurrentUserId('static_admin'); // Use a special ID for the static admin
       } else {
         setError('Invalid username or password.');
