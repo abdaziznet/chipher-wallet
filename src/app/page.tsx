@@ -37,6 +37,7 @@ import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
 import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
+import initSqlJs from 'sql.js';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -49,13 +50,26 @@ export default function PasswordsPage() {
     ]);
   };
 
-  const handleExport = () => {
-    const jsonString = JSON.stringify(passwords, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
+  const handleExport = async () => {
+    const SQL = await initSqlJs({
+      locateFile: file => `https://sql.js.org/dist/${file}`
+    });
+    const db = new SQL.Database();
+
+    db.run("CREATE TABLE passwords (id TEXT, appName TEXT, username TEXT, password TEXT, website TEXT);");
+    
+    const stmt = db.prepare("INSERT INTO passwords VALUES (?, ?, ?, ?, ?)");
+    passwords.forEach(p => {
+      stmt.run([p.id, p.appName, p.username, p.password, p.website || null]);
+    });
+    stmt.free();
+
+    const data = db.export();
+    const blob = new Blob([data], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'cipherwallet-passwords.json';
+    link.download = 'cipherwallet-passwords.db';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
