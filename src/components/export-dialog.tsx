@@ -32,9 +32,15 @@ export function ExportDialog({ children, passwords }: ExportDialogProps) {
   const [keyError, setKeyError] = React.useState('');
 
   const handleExport = () => {
-    if (encrypt && !encryptionKey) {
-      setKeyError('Encryption key is required.');
-      return;
+    if (encrypt) {
+      if (!encryptionKey) {
+        setKeyError('Encryption key is required.');
+        return;
+      }
+      if (encryptionKey !== process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY) {
+        setKeyError('Invalid encryption key. Export failed.');
+        return;
+      }
     }
     setKeyError('');
 
