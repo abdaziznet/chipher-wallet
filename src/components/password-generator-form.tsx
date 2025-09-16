@@ -21,11 +21,11 @@ import { CopyButton } from './copy-button';
 import { Bot, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
-  length: z.number().min(8).max(64),
-  includeUppercase: z.boolean(),
-  includeLowercase: z.boolean(),
-  includeNumbers: z.boolean(),
-  includeSymbols: z.boolean(),
+  length: z.coerce.number().min(8).max(64),
+  includeUppercase: z.coerce.boolean(),
+  includeLowercase: z.coerce.boolean(),
+  includeNumbers: z.coerce.boolean(),
+  includeSymbols: z.coerce.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,16 +51,7 @@ export function PasswordGeneratorForm() {
 
   return (
     <Form {...form}>
-      <form action={form.handleSubmit(() => {
-        const formData = new FormData();
-        const values = form.getValues();
-        formData.append('length', String(values.length));
-        formData.append('includeUppercase', String(values.includeUppercase));
-        formData.append('includeLowercase', String(values.includeLowercase));
-        formData.append('includeNumbers', String(values.includeNumbers));
-        formData.append('includeSymbols', String(values.includeSymbols));
-        formAction(formData);
-      })} className="space-y-8">
+      <form action={formAction} className="space-y-8">
         <div className="relative">
           <Bot className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input

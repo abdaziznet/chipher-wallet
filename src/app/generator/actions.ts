@@ -5,10 +5,10 @@ import { z } from 'zod';
 
 const formSchema = z.object({
   length: z.coerce.number().min(8).max(64),
-  includeUppercase: z.coerce.boolean(),
-  includeLowercase: z.coerce.boolean(),
-  includeNumbers: z.coerce.boolean(),
-  includeSymbols: z.coerce.boolean(),
+  includeUppercase: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
+  includeLowercase: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
+  includeNumbers: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
+  includeSymbols: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
 });
 
 type State = {
