@@ -83,12 +83,21 @@ export function ExportDialog({ children, passwords }: ExportDialogProps) {
         fileExtension = 'csv';
         break;
     }
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const second = String(now.getSeconds()).padStart(2, '0');
+    const timestamp = `${year}${month}${day}-${hour}${minute}${second}`;
 
     const blob = new Blob([data], { type: contentType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `cipherwallet-passwords.${fileExtension}`;
+    link.download = `cipherwallet-passwords-${timestamp}.${fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
