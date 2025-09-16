@@ -17,9 +17,11 @@ import { Input } from '@/components/ui/input';
 import { useUsers } from '@/hooks/use-users';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+// Static admin user: username 'abdaziz', password 'Biidznill@hAMS157'
+const STATIC_ADMIN_USERNAME = 'abdaziz';
+const STATIC_ADMIN_ENCRYPTED_PASSWORD = 'U2FsdGVkX1/qV0xYyK7kL2O7z8Bw5xL8J8p7rX7fF9R6kG7wF4h3Z2kX8Y3vS8K';
 
 export default function LoginPage() {
   const { users, setCurrentUserId, currentUser } = useUsers();
@@ -27,7 +29,6 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const router = useRouter();
-  const { toast } = useToast();
 
   React.useEffect(() => {
     if (currentUser) {
@@ -39,6 +40,27 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
+    // Handle static admin login
+    if (username.toLowerCase() === STATIC_ADMIN_USERNAME) {
+      let decryptedPassword = '';
+      try {
+        const bytes = CryptoJS.AES.decrypt(STATIC_ADMIN_ENCRYPTED_PASSWORD, ENCRYPTION_KEY);
+        decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+      } catch (e) {
+        console.error('Decryption failed for static admin', e);
+        setError('An error occurred during login.');
+        return;
+      }
+
+      if (decryptedPassword === password) {
+        setCurrentUserId('static_admin'); // Use a special ID for the static admin
+      } else {
+        setError('Invalid username or password.');
+      }
+      return;
+    }
+
+    // Handle guest user login
     const user = users.find((u) => u.name.toLowerCase() === username.toLowerCase());
 
     if (!user) {

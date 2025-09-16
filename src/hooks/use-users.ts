@@ -12,13 +12,21 @@ const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default
 
 // This default user will be created on first load if no users exist.
 // The password is 'admin'.
-const defaultAdmin: User = {
-  id: 'admin_01',
-  name: 'Admin',
-  email: 'admin@example.com',
-  role: 'admin',
-  password: CryptoJS.AES.encrypt('admin', ENCRYPTION_KEY).toString(),
+const defaultGuest: User = {
+  id: 'guest_01',
+  name: 'Guest',
+  email: 'guest@example.com',
+  role: 'guest',
+  password: CryptoJS.AES.encrypt('guest', ENCRYPTION_KEY).toString(),
 };
+
+const staticAdminUser: User = {
+  id: 'static_admin',
+  name: 'abdaziz',
+  email: 'admin@static.com',
+  role: 'admin',
+};
+
 
 export function useUsers() {
   const [users, setUsersState] = React.useState<User[]>([]);
@@ -32,8 +40,10 @@ export function useUsers() {
       if (savedUsers) {
         setUsersState(JSON.parse(savedUsers));
       } else {
-        setUsersState([defaultAdmin]);
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultAdmin]));
+        // On first load, if no users, set a default guest.
+        // The old defaultAdmin is now effectively a guest.
+        setUsersState([defaultGuest]);
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultGuest]));
       }
 
       const savedCurrentUserId = localStorage.getItem(CURRENT_USER_ID_STORAGE_KEY);
@@ -42,7 +52,7 @@ export function useUsers() {
       }
     } catch (error) {
       console.error('Failed to load user data from localStorage', error);
-      setUsersState([defaultAdmin]);
+      setUsersState([defaultGuest]);
       setCurrentUserIdState(null);
     }
     setIsLoaded(true);
@@ -73,8 +83,13 @@ export function useUsers() {
   };
 
   const currentUser = React.useMemo(() => {
+    if (currentUserId === staticAdminUser.id) {
+      return staticAdminUser;
+    }
     return users.find(u => u.id === currentUserId) || null;
   }, [users, currentUserId]);
 
-  return { users, setUsers, currentUser, setCurrentUserId, isLoaded };
+  const allUsers = users;
+
+  return { users: allUsers, setUsers, currentUser, setCurrentUserId, isLoaded };
 }

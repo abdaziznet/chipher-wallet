@@ -84,6 +84,11 @@ export default function UsersPage() {
         toast({ variant: 'destructive', title: 'Error', description: 'You cannot delete your own account.'});
         return;
     }
+    // Prevent deleting the static admin
+    if (id === 'static_admin') {
+      toast({ variant: 'destructive', title: 'Error', description: 'The static admin user cannot be deleted.'});
+      return;
+    }
     const updatedUsers = users.filter((u) => u.id !== id);
     setUsers(updatedUsers);
     toast({
@@ -95,6 +100,10 @@ export default function UsersPage() {
   const handleDeleteSelected = () => {
     if (selectedIds.has(currentUser?.id || '')) {
         toast({ variant: 'destructive', title: 'Error', description: 'You cannot delete your own account.'});
+        return;
+    }
+     if (selectedIds.has('static_admin')) {
+        toast({ variant: 'destructive', title: 'Error', description: 'The static admin user cannot be deleted.'});
         return;
     }
     const updatedUsers = users.filter((u) => !selectedIds.has(u.id));
@@ -109,7 +118,7 @@ export default function UsersPage() {
   const filteredUsers = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   const handleSelectAll = (checked: boolean) => {
@@ -203,6 +212,7 @@ export default function UsersPage() {
                         checked={selectedIds.has(user.id)}
                         onCheckedChange={(checked) => handleSelectOne(user.id, checked as boolean)}
                         aria-label={`Select ${user.name}`}
+                        disabled={user.id === 'static_admin'}
                       />
                     </TableCell>
                     <TableCell className="font-medium">
@@ -228,6 +238,7 @@ export default function UsersPage() {
                               aria-haspopup="true"
                               size="icon"
                               variant="ghost"
+                              disabled={user.id === 'static_admin'}
                             >
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Toggle menu</span>
