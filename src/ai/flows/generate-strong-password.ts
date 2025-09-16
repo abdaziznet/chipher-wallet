@@ -12,6 +12,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GeneratePasswordInputSchema = z.object({
+  userInput: z.string().optional().describe('Keywords or phrases to base the password on.'),
   length: z.number().min(8).max(64).default(16).describe('Length of the password.'),
   includeUppercase: z.boolean().default(true).describe('Include uppercase letters.'),
   includeLowercase: z.boolean().default(true).describe('Include lowercase letters.'),
@@ -33,8 +34,20 @@ const generatePasswordPrompt = ai.definePrompt({
   name: 'generatePasswordPrompt',
   input: {schema: GeneratePasswordInputSchema},
   output: {schema: GeneratePasswordOutputSchema},
-  prompt: `You are a password generator. Generate a strong, random password based on the following criteria:\n\nLength: {{{length}}}\nInclude uppercase letters: {{{includeUppercase}}}\nInclude lowercase letters: {{{includeLowercase}}}\nInclude numbers: {{{includeNumbers}}}\nInclude symbols: {{{includeSymbols}}}\n\nThe password should be highly secure and difficult to guess.
-\nEnsure the password meets the specified criteria. Do not include any explanation or justification in the response, only the generated password.`, // Changed to request only the password in the output
+  prompt: `You are a password generator. Generate a strong, random password based on the following criteria:
+
+{{#if userInput}}
+Incorporate the following keywords or phrases into the password in a creative but secure way: "{{{userInput}}}"
+{{/if}}
+
+Length: {{{length}}}
+Include uppercase letters: {{{includeUppercase}}}
+Include lowercase letters: {{{includeLowercase}}}
+Include numbers: {{{includeNumbers}}}
+Include symbols: {{{includeSymbols}}}
+
+The password should be highly secure and difficult to guess. Mix the user's input with random characters to ensure security.
+\nEnsure the password meets the specified criteria. Do not include any explanation or justification in the response, only the generated password.`,
 });
 
 const generateStrongPasswordFlow = ai.defineFlow(

@@ -19,8 +19,10 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { CopyButton } from './copy-button';
 import { Bot, Sparkles } from 'lucide-react';
+import { Textarea } from './ui/textarea';
 
 const formSchema = z.object({
+  userInput: z.string().optional(),
   length: z.coerce.number().min(8).max(64),
   includeUppercase: z.coerce.boolean(),
   includeLowercase: z.coerce.boolean(),
@@ -41,6 +43,7 @@ export function PasswordGeneratorForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      userInput: '',
       length: 16,
       includeUppercase: true,
       includeLowercase: true,
@@ -70,6 +73,25 @@ export function PasswordGeneratorForm() {
         )}
 
         <div className="space-y-6 rounded-lg border p-6">
+          <FormField
+            control={form.control}
+            name="userInput"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Keywords (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="e.g., favorite book, pet's name, a memorable date..."
+                    {...field}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Provide some keywords or a phrase to personalize your password.
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="length"

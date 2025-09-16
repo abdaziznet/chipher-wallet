@@ -4,6 +4,7 @@ import { generateStrongPassword } from '@/ai/flows/generate-strong-password';
 import { z } from 'zod';
 
 const formSchema = z.object({
+  userInput: z.string().optional(),
   length: z.coerce.number().min(8).max(64),
   includeUppercase: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
   includeLowercase: z.string().transform(v => v === 'on' || v === 'true').or(z.boolean()),
@@ -28,6 +29,7 @@ export async function generatePasswordAction(
   }
 
   const {
+    userInput,
     length,
     includeUppercase,
     includeLowercase,
@@ -37,6 +39,7 @@ export async function generatePasswordAction(
 
   try {
     const result = await generateStrongPassword({
+      userInput,
       length,
       includeUppercase,
       includeLowercase,
