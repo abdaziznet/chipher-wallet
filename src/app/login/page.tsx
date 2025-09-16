@@ -23,7 +23,7 @@ const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default
 
 export default function LoginPage() {
   const { users, setCurrentUserId, currentUser } = useUsers();
-  const [email, setEmail] = React.useState('');
+  const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const router = useRouter();
@@ -39,10 +39,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    const user = users.find((u) => u.email === email);
+    const user = users.find((u) => u.name.toLowerCase() === username.toLowerCase());
 
     if (!user) {
-      setError('Invalid email or password.');
+      setError('Invalid username or password.');
       return;
     }
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
     if (decryptedPassword === password) {
       setCurrentUserId(user.id);
     } else {
-      setError('Invalid email or password.');
+      setError('Invalid username or password.');
     }
   };
 
@@ -78,14 +78,14 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
+                id="username"
+                type="text"
+                placeholder="e.g., admin"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -101,7 +101,7 @@ export default function LoginPage() {
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
           </CardContent>
           <CardFooter>
-            <Button className="w-full" type="submit" disabled={!email || !password}>
+            <Button className="w-full" type="submit" disabled={!username || !password}>
               Sign In
             </Button>
           </CardFooter>
