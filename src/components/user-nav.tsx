@@ -59,7 +59,7 @@ export function UserNav() {
            {currentUser.role === 'admin' && (
             <Link href="/users">
               <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
+                <Users className="mr-2 h-4 w-4" />
                 <span>Manage Users</span>
               </DropdownMenuItem>
             </Link>
