@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -37,7 +37,7 @@ const initialState = {
 };
 
 export function PasswordGeneratorForm() {
-  const [state, formAction] = useFormState(generatePasswordAction, initialState);
+  const [state, formAction] = useActionState(generatePasswordAction, initialState);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
