@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useUsers } from '@/hooks/use-users';
+import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
@@ -24,7 +24,7 @@ const STATIC_ADMIN_USERNAME = 'abdaziz';
 const STATIC_ADMIN_PASSWORD = 'Biidznill@hAMS157';
 
 export default function LoginPage() {
-  const { users, setCurrentUserId, currentUser } = useUsers();
+  const { users, setCurrentUserId, currentUser } = useSession();
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -44,7 +44,7 @@ export default function LoginPage() {
     // Handle static admin login
     if (username.toLowerCase() === STATIC_ADMIN_USERNAME) {
       if (password === STATIC_ADMIN_PASSWORD) {
-        setCurrentUserId('static_admin'); // Use a special ID for the static admin
+        setCurrentUserId('static_admin');
       } else {
         setError('Invalid username or password.');
       }

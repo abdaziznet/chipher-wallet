@@ -48,7 +48,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useUsers } from '@/hooks/use-users';
+import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
 
 const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
@@ -62,7 +62,7 @@ export default function PasswordsPage() {
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = React.useState(1);
-  const { currentUser } = useUsers();
+  const { currentUser } = useSession();
   const router = useRouter();
 
 

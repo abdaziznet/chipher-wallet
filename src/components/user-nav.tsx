@@ -17,13 +17,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Users, User, CreditCard, Settings, LifeBuoy, LogOut } from 'lucide-react';
-import { useUsers } from '@/hooks/use-users';
+import { useSession } from '@/contexts/session-context';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export function UserNav() {
-  const { currentUser, setCurrentUserId } = useUsers();
-  const router = useRouter();
+  const { currentUser, setCurrentUserId } = useSession();
 
   if (!currentUser) {
     return null;

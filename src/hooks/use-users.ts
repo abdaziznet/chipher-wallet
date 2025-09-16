@@ -73,7 +73,6 @@ export function useUsers() {
         localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(userId));
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
-        // The redirect is now handled by the RootLayout
       }
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);

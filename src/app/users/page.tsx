@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { User } from '@/lib/types';
-import { useUsers } from '@/hooks/use-users';
+import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
 import { AddUserDialog } from '@/components/add-user-dialog';
 import { EditUserDialog } from '@/components/edit-user-dialog';
@@ -46,7 +46,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const { users, currentUser, setUsers, setCurrentUserId } = useUsers();
+  const { users, currentUser, setUsers } = useSession();
   const { toast } = useToast();
   const [userToEdit, setUserToEdit] = React.useState<User | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());

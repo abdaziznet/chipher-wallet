@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import './globals.css';
@@ -18,17 +19,17 @@ import {
 } from '@/components/ui/sidebar';
 import { Home, Bot, Settings, ShieldCheck, Users } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
-import { useUsers } from '@/hooks/use-users';
+import { SessionProvider, useSession } from '@/contexts/session-context';
 import React from 'react';
 
-export default function RootLayout({
+function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isLoaded } = useUsers();
+  const { currentUser, isLoaded } = useSession();
 
   const allNavItems = [
     { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
@@ -36,11 +37,7 @@ export default function RootLayout({
     { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
     { href: '/users', label: 'Manage Users', icon: Users, roles: ['admin'] },
   ];
-
-  const navItems = allNavItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
-  );
-
+  
   React.useEffect(() => {
     if (isLoaded) {
       if (currentUser && pathname === '/login') {
@@ -80,6 +77,10 @@ export default function RootLayout({
       </html>
     )
   }
+
+  const navItems = allNavItems.filter(item => 
+    currentUser && item.roles.includes(currentUser.role)
+  );
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -135,4 +136,16 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <SessionProvider>
+      <AppLayout>{children}</AppLayout>
+    </SessionProvider>
+  )
 }
