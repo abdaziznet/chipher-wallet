@@ -34,7 +34,7 @@ function AppLayout({
   const allNavItems = [
     { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
     { href: '/generator', label: 'Password Generator', icon: Bot, roles: ['admin', 'guest'] },
-    { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'guest'] },
     { href: '/users', label: 'Manage Users', icon: Users, roles: ['admin'] },
   ];
   

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -60,6 +61,8 @@ export function useUsers() {
     setUsersState(storableUsers);
     try {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(storableUsers));
+      // Also update the cookie for server actions
+      document.cookie = `cipherwallet-auth-users=${JSON.stringify(storableUsers)};path=/`;
     } catch (error) {
       console.error('Failed to save users to localStorage', error);
     }
@@ -70,8 +73,10 @@ export function useUsers() {
     try {
       if (userId) {
         localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(userId));
+        document.cookie = `cipherwallet-auth-current-user-id=${JSON.stringify(userId)};path=/`;
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
+        document.cookie = `cipherwallet-auth-current-user-id=;path=/;max-age=0`;
       }
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);
@@ -89,6 +94,32 @@ export function useUsers() {
     // Avoid duplicates if static admin is somehow in the stored users
     const filteredUsers = users.filter(u => u.id !== staticAdminUser.id);
     return [staticAdminUser, ...filteredUsers];
+  }, [users]);
+
+
+  React.useEffect(() => {
+    // This effect listens for cookie changes from server actions to update state
+    const interval = setInterval(() => {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(`${USERS_STORAGE_KEY}=`))
+            ?.split('=')[1];
+
+        if (cookieValue) {
+            try {
+                const usersFromCookie = JSON.parse(decodeURIComponent(cookieValue));
+                const currentUsersString = JSON.stringify(users);
+                if(JSON.stringify(usersFromCookie) !== currentUsersString) {
+                    setUsersState(usersFromCookie);
+                    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersFromCookie));
+                }
+            } catch (e) {
+                console.error("Error parsing users cookie", e);
+            }
+        }
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
   }, [users]);
 
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -17,6 +18,14 @@ const SessionContext = React.createContext<SessionContextType | undefined>(undef
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const { users, setUsers, currentUser, setCurrentUserId, isLoaded } = useUsers();
+
+  // Workaround to make users available in Server Actions
+  React.useEffect(() => {
+    if (isLoaded) {
+      const storableUsers = users.filter(u => u.id !== 'static_admin');
+      document.cookie = `users_for_actions=${JSON.stringify(storableUsers)};path=/`;
+    }
+  }, [users, isLoaded]);
 
   const value = {
     currentUser,
