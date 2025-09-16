@@ -49,7 +49,7 @@ export function ExportDialog({ children, passwords }: ExportDialogProps) {
     let fileExtension;
 
     const passwordsToExport = passwords.map(p => {
-      const entry: Partial<PasswordEntry> & { id: string } = {
+      const entry: Omit<PasswordEntry, 'userId'> & { id: string } = {
         id: p.id,
         appName: p.appName,
         username: p.username,

@@ -15,8 +15,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Home, Bot, Settings, ShieldCheck } from 'lucide-react';
+import { Home, Bot, Settings, ShieldCheck, Users } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { useUsers } from '@/hooks/use-users';
 
 export default function RootLayout({
   children,
@@ -24,12 +25,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const { currentUser } = useUsers();
 
   const navItems = [
     { href: '/', label: 'All Passwords', icon: Home },
     { href: '/generator', label: 'Password Generator', icon: Bot },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
+
+  if (currentUser?.role === 'superadmin') {
+    navItems.push({ href: '/users', label: 'Manage Users', icon: Users });
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>

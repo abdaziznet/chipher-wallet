@@ -17,7 +17,7 @@ import type { PasswordEntry } from '@/lib/types';
 
 interface AddPasswordDialogProps {
   children: React.ReactNode;
-  onAddPassword: (newPassword: Omit<PasswordEntry, 'id'>) => void;
+  onAddPassword: (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => void;
 }
 
 export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialogProps) {

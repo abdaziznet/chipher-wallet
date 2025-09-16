@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   Avatar,
   AvatarFallback,
@@ -13,45 +14,88 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { CreditCard, LifeBuoy, LogOut, Settings, User } from 'lucide-react';
+import { Users, User, CreditCard, Settings, LifeBuoy, LogOut, Check } from 'lucide-react';
+import { useUsers } from '@/hooks/use-users';
+import Link from 'next/link';
 
 export function UserNav() {
+  const { users, currentUser, setCurrentUserId } = useUsers();
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="https://picsum.photos/seed/user-avatar/40/40" data-ai-hint="person" alt="@user" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={`https://picsum.photos/seed/${currentUser.id}/40/40`} data-ai-hint="person" alt={currentUser.name} />
+            <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">User</p>
+            <p className="text-sm font-medium leading-none">{currentUser.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              user@example.com
+              {currentUser.email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <User className="mr-2 h-4 w-4" />
-            <span>Profile</span>
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Users className="mr-2 h-4 w-4" />
+              <span>Switch User</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                 <DropdownMenuRadioGroup value={currentUser.id} onValueChange={setCurrentUserId}>
+                  {users.map(user => (
+                    <DropdownMenuRadioItem key={user.id} value={user.id}>
+                      {user.name}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+           {currentUser.role === 'superadmin' && (
+            <Link href="/users">
+              <DropdownMenuItem>
+                <User className="mr-2 h-4 w-4" />
+                <span>Manage Users</span>
+              </DropdownMenuItem>
+            </Link>
+          )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <Link href="/settings">
+            <DropdownMenuItem>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
           <DropdownMenuItem>
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Billing</span>
             <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -60,7 +104,7 @@ export function UserNav() {
           <span>Support</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setCurrentUserId(null)}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>

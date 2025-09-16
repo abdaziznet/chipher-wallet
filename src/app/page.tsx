@@ -48,9 +48,10 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useUsers } from '@/hooks/use-users';
 
 const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
-const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 10;
+const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -60,12 +61,15 @@ export default function PasswordsPage() {
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = React.useState(1);
+  const { currentUser } = useUsers();
 
   React.useEffect(() => {
+    if (!currentUser) return;
     try {
       const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedPasswords) {
-        setPasswords(JSON.parse(savedPasswords));
+        const allPasswords: PasswordEntry[] = JSON.parse(savedPasswords);
+        setPasswords(allPasswords.filter(p => p.userId === currentUser.id));
       }
     } catch (error) {
       console.error('Failed to load passwords from localStorage', error);
@@ -75,12 +79,17 @@ export default function PasswordsPage() {
         description: 'Could not load saved passwords.',
       });
     }
-  }, [toast]);
+  }, [toast, currentUser]);
 
   const updatePasswords = (newPasswords: PasswordEntry[]) => {
-    setPasswords(newPasswords);
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newPasswords));
+      const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
+      const allPasswords: PasswordEntry[] = savedPasswords ? JSON.parse(savedPasswords) : [];
+      const otherUserPasswords = allPasswords.filter(p => p.userId !== currentUser?.id);
+      const updatedAllPasswords = [...otherUserPasswords, ...newPasswords];
+      
+      setPasswords(newPasswords);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedAllPasswords));
     } catch (error) {
       console.error('Failed to save passwords to localStorage', error);
       toast({
@@ -91,10 +100,11 @@ export default function PasswordsPage() {
     }
   };
 
-  const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
+  const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => {
+    if (!currentUser) return;
     const updatedPasswords = [
       ...passwords,
-      { ...newPassword, id: `pw_${Date.now()}` },
+      { ...newPassword, id: `pw_${Date.now()}`, userId: currentUser.id },
     ];
     updatePasswords(updatedPasswords);
   };
@@ -132,7 +142,7 @@ export default function PasswordsPage() {
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !currentUser) return;
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -202,6 +212,7 @@ export default function PasswordsPage() {
             username: entry.username,
             password: decryptedPassword,
             website: entry.website || '',
+            userId: currentUser.id,
           };
 
           const existingIndex = updatedPasswordsList.findIndex(p => p.id === fullEntry.id);
@@ -266,6 +277,13 @@ export default function PasswordsPage() {
   const areAllFilteredSelected =
     filteredPasswords.length > 0 && selectedIds.size === filteredPasswords.length && filteredPasswords.every(p => selectedIds.has(p.id));
 
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Please select a user to view passwords.</p>
+      </div>
+    );
+  }
 
   return (
     <>
