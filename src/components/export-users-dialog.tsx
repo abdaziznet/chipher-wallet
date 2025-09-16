@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import * as yaml from 'js-yaml';
+import * as CryptoJS from 'crypto-js';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,12 +18,12 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { User } from '@/lib/types';
 
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+
 interface ExportUsersDialogProps {
   children: React.ReactNode;
   users: User[];
 }
-
-type UserForExport = Omit<User, 'password'>;
 
 export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
   const [open, setOpen] = React.useState(false);
@@ -33,11 +34,12 @@ export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
     let contentType;
     let fileExtension;
 
-    const usersToExport: UserForExport[] = users.map(u => ({
+    const usersToExport = users.map(u => ({
         id: u.id,
         name: u.name,
         email: u.email,
         role: u.role,
+        password: u.password ? CryptoJS.AES.encrypt(u.password, ENCRYPTION_KEY).toString() : '',
     }));
 
     switch (format) {
@@ -53,7 +55,7 @@ export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
         break;
       case 'csv':
       default:
-        const header = ['id', 'name', 'email', 'role'];
+        const header = ['id', 'name', 'email', 'role', 'password'];
         const csvContent = [
           header.join(','),
           ...usersToExport.map(u =>
@@ -61,7 +63,8 @@ export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
               `"${u.id}"`,
               `"${u.name.replace(/"/g, '""')}"`,
               `"${(u.email || '').replace(/"/g, '""')}"`,
-              `"${u.role}"`
+              `"${u.role}"`,
+              `"${u.password}"`
             ].join(',')
           )
         ].join('\n');
@@ -100,7 +103,7 @@ export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
         <DialogHeader>
           <DialogTitle>Export Users</DialogTitle>
           <DialogDescription>
-            Choose your export format. Passwords will not be included.
+            Choose your export format. Passwords will be included and encrypted.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
@@ -134,4 +137,3 @@ export function ExportUsersDialog({ children, users }: ExportUsersDialogProps) {
     </Dialog>
   );
 }
-
