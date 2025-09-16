@@ -25,24 +25,6 @@ type State = {
   success?: string;
 };
 
-// This is a workaround to get user data in a server action.
-// In a real app, you would fetch this from a database.
-const getUsersFromCookie = (): User[] => {
-  const cookieStore = cookies();
-  // This is a bit of a hack. We're passing user data via cookies
-  // because we don't have a database. This is NOT recommended for production.
-  const usersCookie = cookieStore.get('users_for_actions');
-  if (usersCookie?.value) {
-    try {
-      return JSON.parse(usersCookie.value);
-    } catch {
-      return [];
-    }
-  }
-  return [];
-};
-
-
 export async function updatePasswordAction(
   prevState: State,
   formData: FormData
@@ -67,8 +49,8 @@ export async function updatePasswordAction(
       return { error: 'No user is currently logged in.' };
     }
 
-    const savedUsers = cookieStore.get(USERS_STORAGE_KEY);
-    let users: User[] = savedUsers ? JSON.parse(savedUsers.value) : [];
+    const savedUsersCookie = cookieStore.get(USERS_STORAGE_KEY);
+    let users: User[] = savedUsersCookie ? JSON.parse(savedUsersCookie.value) : [];
 
     const userIndex = users.findIndex(u => u.id === currentUserId);
     const user = userIndex !== -1 ? users[userIndex] : null;
