@@ -14,6 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Users, User, CreditCard, Settings, LifeBuoy, LogOut } from 'lucide-react';
 import { useUsers } from '@/hooks/use-users';
