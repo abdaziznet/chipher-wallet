@@ -11,6 +11,7 @@ import {
   Search,
   KeyRound,
   FileDown,
+  Trash2,
 } from 'lucide-react';
 import {
   Card,
@@ -43,6 +44,7 @@ import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
 
@@ -52,6 +54,7 @@ export default function PasswordsPage() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
     try {
@@ -107,6 +110,16 @@ export default function PasswordsPage() {
       description: 'The password has been successfully removed.',
     });
   };
+
+  const handleDeleteSelected = () => {
+    const updatedPasswords = passwords.filter((p) => !selectedIds.has(p.id));
+    updatePasswords(updatedPasswords);
+    toast({
+      title: `${selectedIds.size} Passwords Deleted`,
+      description: 'The selected passwords have been removed.',
+    });
+    setSelectedIds(new Set());
+  }
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -219,6 +232,28 @@ export default function PasswordsPage() {
       p.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(filteredPasswords.map((p) => p.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelectedIds = new Set(selectedIds);
+    if (checked) {
+      newSelectedIds.add(id);
+    } else {
+      newSelectedIds.delete(id);
+    }
+    setSelectedIds(newSelectedIds);
+  };
+
+  const areAllFilteredSelected =
+    filteredPasswords.length > 0 && selectedIds.size === filteredPasswords.length && filteredPasswords.every(p => selectedIds.has(p.id));
+
+
   return (
     <>
       <div className="flex items-center gap-4 mb-6">
@@ -232,6 +267,12 @@ export default function PasswordsPage() {
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
+          {selectedIds.size > 0 && (
+              <Button variant="destructive" onClick={handleDeleteSelected}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedIds.size})
+              </Button>
+          )}
           <input
             type="file"
             ref={fileInputRef}
@@ -268,6 +309,14 @@ export default function PasswordsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                 <TableHead className="w-[40px]">
+                  <Checkbox
+                    checked={areAllFilteredSelected}
+                    onCheckedChange={handleSelectAll}
+                    aria-label="Select all"
+                    disabled={filteredPasswords.length === 0}
+                  />
+                </TableHead>
                 <TableHead className="hidden w-[100px] sm:table-cell">
                   <span className="sr-only">Icon</span>
                 </TableHead>
@@ -281,7 +330,14 @@ export default function PasswordsPage() {
             <TableBody>
               {filteredPasswords.length > 0 ? (
                 filteredPasswords.map((password) => (
-                  <TableRow key={password.id}>
+                  <TableRow key={password.id} data-state={selectedIds.has(password.id) && "selected"}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.has(password.id)}
+                        onCheckedChange={(checked) => handleSelectOne(password.id, checked as boolean)}
+                        aria-label={`Select ${password.appName}`}
+                      />
+                    </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
                         <AppIcon appName={password.appName} className="h-5 w-5 text-muted-foreground" />
@@ -331,7 +387,7 @@ export default function PasswordsPage() {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No passwords found. Add one to get started.
