@@ -50,14 +50,13 @@ export default function PasswordsPage() {
   };
 
   const handleExport = () => {
-    const header = ['appName', 'username', 'password', 'website'];
+    const header = ['appName', 'username', 'website'];
     const csvContent = [
       header.join(','),
       ...passwords.map(p => 
         [
           `"${p.appName.replace(/"/g, '""')}"`,
           `"${p.username.replace(/"/g, '""')}"`,
-          `"${p.password.replace(/"/g, '""')}"`,
           `"${(p.website || '').replace(/"/g, '""')}"`
         ].join(',')
       )
