@@ -44,6 +44,8 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 
+const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
+
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [passwords, setPasswords] = React.useState<PasswordEntry[]>([]);
@@ -51,22 +53,55 @@ export default function PasswordsPage() {
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
 
+  React.useEffect(() => {
+    try {
+      const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedPasswords) {
+        setPasswords(JSON.parse(savedPasswords));
+      }
+    } catch (error) {
+      console.error('Failed to load passwords from localStorage', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not load saved passwords.',
+      });
+    }
+  }, [toast]);
+
+  const updatePasswords = (newPasswords: PasswordEntry[]) => {
+    setPasswords(newPasswords);
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newPasswords));
+    } catch (error) {
+      console.error('Failed to save passwords to localStorage', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not save passwords.',
+      });
+    }
+  };
+
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
-    setPasswords((prev) => [
-      ...prev,
+    const updatedPasswords = [
+      ...passwords,
       { ...newPassword, id: `pw_${Date.now()}` },
-    ]);
+    ];
+    updatePasswords(updatedPasswords);
   };
 
   const handleEditPassword = (updatedPassword: PasswordEntry) => {
-    setPasswords((prev) =>
-      prev.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
+    const updatedPasswords = passwords.map((p) =>
+      p.id === updatedPassword.id ? updatedPassword : p
     );
+    updatePasswords(updatedPasswords);
     setPasswordToEdit(null);
   };
 
   const handleDeletePassword = (id: string) => {
-    setPasswords((prev) => prev.filter((p) => p.id !== id));
+    const updatedPasswords = passwords.filter((p) => p.id !== id);
+    updatePasswords(updatedPasswords);
     toast({
       title: 'Password Deleted',
       description: 'The password has been successfully removed.',
@@ -122,7 +157,7 @@ export default function PasswordsPage() {
         }
         
         const newPasswords: PasswordEntry[] = [];
-        const updatedPasswords = [...passwords];
+        const updatedPasswordsList = [...passwords];
 
         importedPasswords.forEach((entry, index) => {
           if (!entry.appName || !entry.username || !entry.password) {
@@ -151,15 +186,15 @@ export default function PasswordsPage() {
             website: entry.website || '',
           };
 
-          const existingIndex = updatedPasswords.findIndex(p => p.id === fullEntry.id);
+          const existingIndex = updatedPasswordsList.findIndex(p => p.id === fullEntry.id);
           if (existingIndex > -1) {
-            updatedPasswords[existingIndex] = fullEntry;
+            updatedPasswordsList[existingIndex] = fullEntry;
           } else {
             newPasswords.push(fullEntry);
           }
         });
         
-        setPasswords([...updatedPasswords, ...newPasswords]);
+        updatePasswords([...updatedPasswordsList, ...newPasswords]);
 
         toast({
           title: 'Import Successful',
