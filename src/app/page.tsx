@@ -1,3 +1,166 @@
-export default function Home() {
-  return <></>;
+'use client';
+
+import * as React from 'react';
+import {
+  MoreHorizontal,
+  PlusCircle,
+  FileUp,
+  Search,
+  KeyRound,
+  Globe,
+} from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { AddPasswordDialog } from '@/components/add-password-dialog';
+import { CopyButton } from '@/components/copy-button';
+import type { PasswordEntry } from '@/lib/types';
+import { mockPasswords } from '@/lib/data';
+
+export default function PasswordsPage() {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [passwords, setPasswords] = React.useState<PasswordEntry[]>(mockPasswords);
+
+  const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
+    setPasswords((prev) => [
+      { id: `pw_${Date.now()}`, ...newPassword },
+      ...prev,
+    ]);
+  };
+
+  const filteredPasswords = passwords.filter(
+    (p) =>
+      p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search passwords..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button variant="outline">
+            <FileUp className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+          <AddPasswordDialog onAddPassword={handleAddPassword}>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Password
+            </Button>
+          </AddPasswordDialog>
+        </div>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Passwords</CardTitle>
+          <CardDescription>
+            A secure list of all your saved credentials.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="hidden w-[100px] sm:table-cell">
+                  <span className="sr-only">Icon</span>
+                </TableHead>
+                <TableHead>Account</TableHead>
+                <TableHead>Username</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPasswords.length > 0 ? (
+                filteredPasswords.map((password) => (
+                  <TableRow key={password.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {password.appName}
+                    </TableCell>
+                    <TableCell>{password.username}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-end gap-2">
+                        <CopyButton
+                          valueToCopy={password.password}
+                          tooltip="Copy password"
+                        >
+                          <KeyRound className="h-4 w-4" />
+                          <span className="sr-only">Copy Password</span>
+                        </CopyButton>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No passwords found. Add one to get started.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
+  );
 }
