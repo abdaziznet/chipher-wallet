@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import * as CryptoJS from 'crypto-js';
+import * as yaml from 'js-yaml';
 import {
   MoreHorizontal,
   PlusCircle,
@@ -65,37 +67,76 @@ export default function PasswordsPage() {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      
       try {
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-        const headerLine = lines.shift();
-        if (!headerLine) {
-          throw new Error('CSV file is empty or has no header.');
-        }
-        const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+        let importedPasswords: Omit<PasswordEntry, 'id'>[] = [];
 
-        const requiredHeaders = ['appName', 'username', 'password'];
-        if (!requiredHeaders.every(h => header.includes(h))) {
+        if (fileExtension === 'json') {
+          importedPasswords = JSON.parse(text);
+        } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
+          importedPasswords = yaml.load(text) as Omit<PasswordEntry, 'id'>[];
+        } else if (fileExtension === 'csv') {
+          const lines = text.split('\n').filter(line => line.trim() !== '');
+          const headerLine = lines.shift();
+          if (!headerLine) throw new Error('CSV file is empty or has no header.');
+          
+          const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+          const requiredHeaders = ['appName', 'username', 'password'];
+          if (!requiredHeaders.every(h => header.includes(h))) {
             throw new Error('Invalid CSV header. Must include appName, username, and password.');
+          }
+
+          importedPasswords = lines.map((line, index) => {
+            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            const entryData: {[key: string]: string} = {};
+            header.forEach((h, i) => {
+              entryData[h] = values[i] || '';
+            });
+
+            const entry: Omit<PasswordEntry, 'id'> = {
+              appName: entryData.appName || '',
+              username: entryData.username || '',
+              password: entryData.password || '',
+              website: entryData.website || '',
+            };
+            if (!entry.appName || !entry.username || !entry.password) {
+              throw new Error(`Invalid data on line ${index + 2}. appName, username, and password are required.`);
+            }
+            return entry;
+          });
+        } else {
+          throw new Error('Unsupported file format. Please use CSV, JSON, or YAML.');
         }
 
-        const newPasswords: PasswordEntry[] = lines.map((line, index) => {
-          const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-          const entryData: {[key: string]: string} = {};
-          header.forEach((h, i) => {
-            entryData[h] = values[i] || '';
-          });
+        // Check if passwords might be encrypted and ask for a key if so
+        const firstPassword = importedPasswords[0]?.password;
+        const isLikelyEncrypted = firstPassword && (firstPassword.startsWith('U2FsdGVk') || firstPassword.length > 50);
 
-          const entry: Omit<PasswordEntry, 'id'> = {
-            appName: entryData.appName || '',
-            username: entryData.username || '',
-            password: entryData.password || '',
-            website: entryData.website || '',
-          };
-
-          if (!entry.appName || !entry.username || !entry.password) {
-            throw new Error(`Invalid data on line ${index + 2}. appName, username, and password are required.`);
+        let decryptionKey = '';
+        if (isLikelyEncrypted) {
+          decryptionKey = prompt('It looks like this file is encrypted. Please enter your encryption key to decrypt the passwords.') || '';
+        }
+        
+        const newPasswords: PasswordEntry[] = importedPasswords.map((entry, index) => {
+          let decryptedPassword = entry.password;
+          if (decryptionKey) {
+            try {
+              const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
+              decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+              if (!decryptedPassword) {
+                 throw new Error(`Decryption failed for an entry. Please check your key.`);
+              }
+            } catch (err) {
+              throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
+            }
           }
-          return { id: `pw_import_${Date.now()}_${index}`, ...entry };
+
+          return {
+            id: `pw_import_${Date.now()}_${index}`,
+            ...entry,
+            password: decryptedPassword,
+          };
         });
 
         setPasswords(prev => [...prev, ...newPasswords]);
@@ -104,16 +145,15 @@ export default function PasswordsPage() {
           description: `${newPasswords.length} passwords have been imported.`,
         });
       } catch (error) {
-        console.error('Failed to parse CSV:', error);
+        console.error('Failed to import file:', error);
         toast({
           variant: 'destructive',
           title: 'Import Failed',
-          description: error instanceof Error ? error.message : 'Could not parse the CSV file. Please check the format.',
+          description: error instanceof Error ? error.message : 'Could not parse the file. Please check the format and content.',
         });
       }
     };
     reader.readAsText(file);
-    // Reset file input
     event.target.value = '';
   };
 
@@ -141,7 +181,7 @@ export default function PasswordsPage() {
             ref={fileInputRef}
             onChange={handleImport}
             className="hidden"
-            accept=".csv"
+            accept=".csv,.json,.yaml,.yml"
           />
           <Button variant="outline" onClick={handleImportClick}>
             <FileDown className="mr-2 h-4 w-4" />
