@@ -52,7 +52,7 @@ export default function PasswordsPage() {
 
   const handleExport = async () => {
     const SQL = await initSqlJs({
-      locateFile: file => `https://sql.js.org/dist/${file}`
+      locateFile: file => `/_next/static/chunks/${file}`
     });
     const db = new SQL.Database();
 
@@ -149,7 +149,7 @@ export default function PasswordsPage() {
                         >
                           <KeyRound className="h-4 w-4" />
                           <span className="sr-only">Copy Password</span>
-                        </CopyButton>
+                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
