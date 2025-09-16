@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -44,29 +45,51 @@ import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 
+const STORAGE_KEY = 'cipherwallet-passwords';
+
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [passwords, setPasswords] = React.useState<PasswordEntry[]>(mockPasswords);
+  const [passwords, setPasswords] = React.useState<PasswordEntry[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
 
+  React.useEffect(() => {
+    try {
+      const storedPasswords = localStorage.getItem(STORAGE_KEY);
+      if (storedPasswords) {
+        setPasswords(JSON.parse(storedPasswords));
+      } else {
+        // If no passwords in storage, initialize with mock data
+        setPasswords(mockPasswords);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockPasswords));
+      }
+    } catch (error) {
+      console.error('Failed to load passwords from localStorage:', error);
+      // Fallback to mock data if localStorage is corrupt or unavailable
+      setPasswords(mockPasswords);
+    }
+  }, []);
+
+  const updatePasswords = (newPasswords: PasswordEntry[]) => {
+    setPasswords(newPasswords);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPasswords));
+  };
+
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
-    setPasswords((prev) => [
-      { id: `pw_${Date.now()}`, ...newPassword },
-      ...prev,
-    ]);
+    const newEntry = { id: `pw_${Date.now()}`, ...newPassword };
+    updatePasswords([newEntry, ...passwords]);
   };
 
   const handleEditPassword = (updatedPassword: PasswordEntry) => {
-    setPasswords((prev) =>
-      prev.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
+    updatePasswords(
+      passwords.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
     );
     setPasswordToEdit(null);
   };
 
   const handleDeletePassword = (id: string) => {
-    setPasswords((prev) => prev.filter((p) => p.id !== id));
+    updatePasswords(passwords.filter((p) => p.id !== id));
     toast({
       title: 'Password Deleted',
       description: 'The password has been successfully removed.',
@@ -121,50 +144,48 @@ export default function PasswordsPage() {
           decryptionKey = prompt('It looks like this file is encrypted. Please enter your encryption key to decrypt the passwords.') || '';
         }
         
-        setPasswords(prevPasswords => {
-          const updatedPasswords = [...prevPasswords];
-          const newPasswords: PasswordEntry[] = [];
+        const currentPasswords = [...passwords];
+        const newPasswords: PasswordEntry[] = [];
 
-          importedPasswords.forEach((entry, index) => {
-            if (!entry.appName || !entry.username || !entry.password) {
-              console.warn(`Skipping invalid entry at index ${index}`);
-              return;
-            }
+        importedPasswords.forEach((entry, index) => {
+          if (!entry.appName || !entry.username || !entry.password) {
+            console.warn(`Skipping invalid entry at index ${index}`);
+            return;
+          }
 
-            let decryptedPassword = entry.password;
-            if (decryptionKey) {
-              try {
-                const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
-                decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-                if (!decryptedPassword) {
-                   throw new Error(`Decryption failed for an entry. Please check your key.`);
-                }
-              } catch (err) {
-                throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
+          let decryptedPassword = entry.password;
+          if (decryptionKey) {
+            try {
+              const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
+              decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+              if (!decryptedPassword) {
+                  throw new Error(`Decryption failed for an entry. Please check your key.`);
               }
+            } catch (err) {
+              throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
             }
-            
-            const fullEntry: PasswordEntry = {
-              id: entry.id || `pw_import_${Date.now()}_${index}`,
-              appName: entry.appName,
-              username: entry.username,
-              password: decryptedPassword,
-              website: entry.website || '',
-            };
+          }
+          
+          const fullEntry: PasswordEntry = {
+            id: entry.id || `pw_import_${Date.now()}_${index}`,
+            appName: entry.appName,
+            username: entry.username,
+            password: decryptedPassword,
+            website: entry.website || '',
+          };
 
-            const existingIndex = updatedPasswords.findIndex(p => p.id === fullEntry.id);
+          const existingIndex = currentPasswords.findIndex(p => p.id === fullEntry.id);
 
-            if (existingIndex !== -1) {
-              // Update existing password
-              updatedPasswords[existingIndex] = fullEntry;
-            } else {
-              // Add new password
-              newPasswords.push(fullEntry);
-            }
-          });
-
-          return [...newPasswords, ...updatedPasswords];
+          if (existingIndex !== -1) {
+            // Update existing password
+            currentPasswords[existingIndex] = fullEntry;
+          } else {
+            // Add new password
+            newPasswords.push(fullEntry);
+          }
         });
+        
+        updatePasswords([...newPasswords, ...currentPasswords]);
 
         toast({
           title: 'Import Successful',
