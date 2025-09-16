@@ -39,6 +39,7 @@ import type { PasswordEntry } from '@/lib/types';
 import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
+import { ExportDialog } from '@/components/export-dialog';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -51,30 +52,6 @@ export default function PasswordsPage() {
       { id: `pw_${Date.now()}`, ...newPassword },
       ...prev,
     ]);
-  };
-
-  const handleExport = () => {
-    const header = ['appName', 'username', 'website'];
-    const csvContent = [
-      header.join(','),
-      ...passwords.map(p => 
-        [
-          `"${p.appName.replace(/"/g, '""')}"`,
-          `"${p.username.replace(/"/g, '""')}"`,
-          `"${(p.website || '').replace(/"/g, '""')}"`
-        ].join(',')
-      )
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'cipherwallet-passwords.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   const handleImportClick = () => {
@@ -90,20 +67,31 @@ export default function PasswordsPage() {
       const text = e.target?.result as string;
       try {
         const lines = text.split('\n').filter(line => line.trim() !== '');
-        const header = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const headerLine = lines.shift();
+        if (!headerLine) {
+          throw new Error('CSV file is empty or has no header.');
+        }
+        const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+
         const requiredHeaders = ['appName', 'username', 'password'];
         if (!requiredHeaders.every(h => header.includes(h))) {
             throw new Error('Invalid CSV header. Must include appName, username, and password.');
         }
 
-        const newPasswords: PasswordEntry[] = lines.slice(1).map((line, index) => {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const newPasswords: PasswordEntry[] = lines.map((line, index) => {
+          const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+          const entryData: {[key: string]: string} = {};
+          header.forEach((h, i) => {
+            entryData[h] = values[i] || '';
+          });
+
           const entry: Omit<PasswordEntry, 'id'> = {
-            appName: values[header.indexOf('appName')] || '',
-            username: values[header.indexOf('username')] || '',
-            password: values[header.indexOf('password')] || '',
-            website: values[header.indexOf('website')] || '',
+            appName: entryData.appName || '',
+            username: entryData.username || '',
+            password: entryData.password || '',
+            website: entryData.website || '',
           };
+
           if (!entry.appName || !entry.username || !entry.password) {
             throw new Error(`Invalid data on line ${index + 2}. appName, username, and password are required.`);
           }
@@ -159,10 +147,12 @@ export default function PasswordsPage() {
             <FileDown className="mr-2 h-4 w-4" />
             Import
           </Button>
-          <Button variant="outline" onClick={handleExport}>
-            <FileUp className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+          <ExportDialog passwords={passwords}>
+            <Button variant="outline">
+              <FileUp className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </ExportDialog>
           <AddPasswordDialog onAddPassword={handleAddPassword}>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
