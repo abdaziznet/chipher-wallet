@@ -49,6 +49,19 @@ export default function PasswordsPage() {
     ]);
   };
 
+  const handleExport = () => {
+    const jsonString = JSON.stringify(passwords, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'cipherwallet-passwords.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const filteredPasswords = passwords.filter(
     (p) =>
       p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,7 +81,7 @@ export default function PasswordsPage() {
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport}>
             <FileUp className="mr-2 h-4 w-4" />
             Export
           </Button>
