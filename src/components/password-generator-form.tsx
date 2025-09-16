@@ -13,7 +13,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
@@ -50,19 +49,18 @@ export function PasswordGeneratorForm() {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    const formData = new FormData();
-    formData.append('length', String(values.length));
-    formData.append('includeUppercase', String(values.includeUppercase));
-    formData.append('includeLowercase', String(values.includeLowercase));
-    formData.append('includeNumbers', String(values.includeNumbers));
-    formData.append('includeSymbols', String(values.includeSymbols));
-    formAction(formData);
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form action={form.handleSubmit(() => {
+        const formData = new FormData();
+        const values = form.getValues();
+        formData.append('length', String(values.length));
+        formData.append('includeUppercase', String(values.includeUppercase));
+        formData.append('includeLowercase', String(values.includeLowercase));
+        formData.append('includeNumbers', String(values.includeNumbers));
+        formData.append('includeSymbols', String(values.includeSymbols));
+        formAction(formData);
+      })} className="space-y-8">
         <div className="relative">
           <Bot className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
