@@ -42,8 +42,12 @@ export default function RootLayout({
   );
 
   React.useEffect(() => {
-    if (isLoaded && !currentUser && pathname !== '/login') {
-      router.push('/login');
+    if (isLoaded) {
+      if (currentUser && pathname === '/login') {
+        router.push('/');
+      } else if (!currentUser && pathname !== '/login') {
+        router.push('/login');
+      }
     }
   }, [isLoaded, currentUser, pathname, router]);
 
@@ -60,11 +64,7 @@ export default function RootLayout({
     </html>
   );
 
-  if (!isLoaded) {
-    return renderLoading();
-  }
-
-  if (!currentUser && pathname !== '/login') {
+  if (!isLoaded || (!currentUser && pathname !== '/login')) {
     return renderLoading();
   }
   

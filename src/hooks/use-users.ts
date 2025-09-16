@@ -11,7 +11,7 @@ const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-auth-current-user-id';
 const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
 // This default user will be created on first load if no users exist.
-// The password is 'admin'.
+// The password is 'guest'.
 const defaultGuest: User = {
   id: 'guest_01',
   name: 'Guest',
@@ -41,7 +41,6 @@ export function useUsers() {
         setUsersState(JSON.parse(savedUsers));
       } else {
         // On first load, if no users, set a default guest.
-        // The old defaultAdmin is now effectively a guest.
         setUsersState([defaultGuest]);
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultGuest]));
       }
@@ -72,10 +71,9 @@ export function useUsers() {
     try {
       if (userId) {
         localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(userId));
-        router.push('/');
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
-        router.push('/login');
+        // The redirect is now handled by the RootLayout
       }
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);
