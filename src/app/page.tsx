@@ -149,7 +149,7 @@ export default function PasswordsPage() {
                         >
                           <KeyRound className="h-4 w-4" />
                           <span className="sr-only">Copy Password</span>
-                        </Button>
+                        </CopyButton>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
