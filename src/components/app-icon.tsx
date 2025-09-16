@@ -1,4 +1,4 @@
-import { Github, Film, ShoppingCart, Globe, X } from 'lucide-react';
+import { Github, Film, ShoppingCart, Globe, X, Bot, Facebook, Linkedin, Slack } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
 interface AppIconProps extends LucideProps {
@@ -19,6 +19,18 @@ export function AppIcon({ appName, ...props }: AppIconProps) {
   }
   if (lowerCaseAppName.includes('amazon')) {
     return <ShoppingCart {...props} />;
+  }
+  if (lowerCaseAppName.includes('google')) {
+    return <Bot {...props} />;
+  }
+  if (lowerCaseAppName.includes('facebook')) {
+    return <Facebook {...props} />;
+  }
+  if (lowerCaseAppName.includes('linkedin')) {
+    return <Linkedin {...props} />;
+  }
+  if (lowerCaseAppName.includes('slack')) {
+    return <Slack {...props} />;
   }
   
   return <Globe {...props} />;
