@@ -12,11 +12,14 @@ import {
   KeyRound,
   FileDown,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -47,6 +50,7 @@ import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
+const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 10;
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -55,6 +59,7 @@ export default function PasswordsPage() {
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   React.useEffect(() => {
     try {
@@ -231,6 +236,14 @@ export default function PasswordsPage() {
       p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const totalPages = Math.ceil(filteredPasswords.length / PAGE_SIZE);
+
+  const paginatedPasswords = filteredPasswords.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -263,7 +276,10 @@ export default function PasswordsPage() {
             placeholder="Search passwords..."
             className="pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
@@ -328,8 +344,8 @@ export default function PasswordsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPasswords.length > 0 ? (
-                filteredPasswords.map((password) => (
+              {paginatedPasswords.length > 0 ? (
+                paginatedPasswords.map((password) => (
                   <TableRow key={password.id} data-state={selectedIds.has(password.id) && "selected"}>
                     <TableCell>
                       <Checkbox
@@ -397,6 +413,33 @@ export default function PasswordsPage() {
             </TableBody>
           </Table>
         </CardContent>
+        {totalPages > 1 && (
+          <CardFooter className="justify-between">
+            <div className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </Card>
       {passwordToEdit && (
         <EditPasswordDialog
