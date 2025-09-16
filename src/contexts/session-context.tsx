@@ -24,8 +24,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     if (isLoaded) {
       const storableUsers = users.filter(u => u.id !== 'static_admin');
       document.cookie = `users_for_actions=${JSON.stringify(storableUsers)};path=/`;
+      if (currentUser) {
+        document.cookie = `cipherwallet-auth-current-user-id=${JSON.stringify(currentUser.id)};path=/`;
+        document.cookie = `cipherwallet-auth-users=${JSON.stringify(users.filter(u => u.id !== 'static_admin'))};path=/`;
+      }
     }
-  }, [users, isLoaded]);
+  }, [users, isLoaded, currentUser]);
 
   const value = {
     currentUser,

@@ -90,6 +90,10 @@ export async function updatePasswordAction(
         return { error: 'An error occurred while verifying your password.' };
     }
 
+    if (!decryptedPassword) {
+      return { error: 'Incorrect current password.' };
+    }
+    
     if (decryptedPassword !== currentPassword) {
       return { error: 'Incorrect current password.' };
     }
