@@ -43,7 +43,6 @@ import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
-import { useDb } from '@/lib/db';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -52,39 +51,22 @@ export default function PasswordsPage() {
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
 
-  const { db, error, getPasswords, addPassword, updatePassword, deletePassword, bulkInsertOrUpdate, exportDb } = useDb();
-
-  React.useEffect(() => {
-    if (db) {
-      setPasswords(getPasswords());
-    }
-  }, [db, getPasswords]);
-
-  if (error) {
-    return <div className="text-destructive">Error loading database: {error.message}</div>;
-  }
-  if (!db) {
-    return <div>Loading database...</div>;
-  }
-
-  const refreshPasswords = () => {
-    setPasswords(getPasswords());
-  };
-
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
-    addPassword(newPassword);
-    refreshPasswords();
+    setPasswords((prev) => [
+      ...prev,
+      { ...newPassword, id: `pw_${Date.now()}` },
+    ]);
   };
 
   const handleEditPassword = (updatedPassword: PasswordEntry) => {
-    updatePassword(updatedPassword);
+    setPasswords((prev) =>
+      prev.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
+    );
     setPasswordToEdit(null);
-    refreshPasswords();
   };
 
   const handleDeletePassword = (id: string) => {
-    deletePassword(id);
-    refreshPasswords();
+    setPasswords((prev) => prev.filter((p) => p.id !== id));
     toast({
       title: 'Password Deleted',
       description: 'The password has been successfully removed.',
@@ -140,6 +122,7 @@ export default function PasswordsPage() {
         }
         
         const newPasswords: PasswordEntry[] = [];
+        const updatedPasswords = [...passwords];
 
         importedPasswords.forEach((entry, index) => {
           if (!entry.appName || !entry.username || !entry.password) {
@@ -167,11 +150,16 @@ export default function PasswordsPage() {
             password: decryptedPassword,
             website: entry.website || '',
           };
-          newPasswords.push(fullEntry);
+
+          const existingIndex = updatedPasswords.findIndex(p => p.id === fullEntry.id);
+          if (existingIndex > -1) {
+            updatedPasswords[existingIndex] = fullEntry;
+          } else {
+            newPasswords.push(fullEntry);
+          }
         });
         
-        bulkInsertOrUpdate(newPasswords);
-        refreshPasswords();
+        setPasswords([...updatedPasswords, ...newPasswords]);
 
         toast({
           title: 'Import Successful',
