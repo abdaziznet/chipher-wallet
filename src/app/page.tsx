@@ -7,7 +7,6 @@ import {
   FileUp,
   Search,
   KeyRound,
-  Globe,
 } from 'lucide-react';
 import {
   Card,
@@ -31,13 +30,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddPasswordDialog } from '@/components/add-password-dialog';
 import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
 import { mockPasswords } from '@/lib/data';
+import { AppIcon } from '@/components/app-icon';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -108,7 +107,7 @@ export default function PasswordsPage() {
                   <TableRow key={password.id}>
                     <TableCell className="hidden sm:table-cell">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        <AppIcon appName={password.appName} className="h-5 w-5 text-muted-foreground" />
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
