@@ -37,7 +37,6 @@ import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
 import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
-import initSqlJs from 'sql.js';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -50,26 +49,25 @@ export default function PasswordsPage() {
     ]);
   };
 
-  const handleExport = async () => {
-    const SQL = await initSqlJs({
-      locateFile: file => `/_next/static/chunks/${file}`
-    });
-    const db = new SQL.Database();
+  const handleExport = () => {
+    const header = ['appName', 'username', 'password', 'website'];
+    const csvContent = [
+      header.join(','),
+      ...passwords.map(p => 
+        [
+          `"${p.appName.replace(/"/g, '""')}"`,
+          `"${p.username.replace(/"/g, '""')}"`,
+          `"${p.password.replace(/"/g, '""')}"`,
+          `"${(p.website || '').replace(/"/g, '""')}"`
+        ].join(',')
+      )
+    ].join('\n');
 
-    db.run("CREATE TABLE passwords (id TEXT, appName TEXT, username TEXT, password TEXT, website TEXT);");
-    
-    const stmt = db.prepare("INSERT INTO passwords VALUES (?, ?, ?, ?, ?)");
-    passwords.forEach(p => {
-      stmt.run([p.id, p.appName, p.username, p.password, p.website || null]);
-    });
-    stmt.free();
-
-    const data = db.export();
-    const blob = new Blob([data], { type: 'application/octet-stream' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'cipherwallet-passwords.db';
+    link.download = 'cipherwallet-passwords.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
