@@ -43,7 +43,7 @@ export default function RootLayout({
         <title>CipherWallet</title>
         <meta name="description" content="A modern and secure password manager." />
       </head>
-      <body className="font-body antialiased">
+      <body className="font-body antialiased" suppressHydrationWarning>
         <Toaster />
         <SidebarProvider>
           <Sidebar>
