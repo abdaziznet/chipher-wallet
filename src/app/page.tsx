@@ -42,18 +42,27 @@ import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
+import { EditPasswordDialog } from '@/components/edit-password-dialog';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [passwords, setPasswords] = React.useState<PasswordEntry[]>(mockPasswords);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
 
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
     setPasswords((prev) => [
       { id: `pw_${Date.now()}`, ...newPassword },
       ...prev,
     ]);
+  };
+
+  const handleEditPassword = (updatedPassword: PasswordEntry) => {
+    setPasswords((prev) =>
+      prev.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
+    );
+    setPasswordToEdit(null);
   };
 
   const handleDeletePassword = (id: string) => {
@@ -274,7 +283,9 @@ export default function PasswordsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setPasswordToEdit(password)}>
+                              Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDeletePassword(password.id)}
@@ -301,6 +312,13 @@ export default function PasswordsPage() {
           </Table>
         </CardContent>
       </Card>
+      {passwordToEdit && (
+        <EditPasswordDialog
+          password={passwordToEdit}
+          onEditPassword={handleEditPassword}
+          onOpenChange={(isOpen) => !isOpen && setPasswordToEdit(null)}
+        />
+      )}
     </>
   );
 }
