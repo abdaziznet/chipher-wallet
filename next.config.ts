@@ -35,19 +35,9 @@ const nextConfig: NextConfig = {
       '*.cluster-a6zx3cwnb5hnuwbgyxmofxpkfe.cloudworkstations.dev',
     ],
   },
-  webpack: (config, { isServer }) => {
-    // This is to fix a bug with sql.js
-    if (!isServer) {
-      config.resolve.fallback = {
-        fs: false,
-        path: false,
-        crypto: false,
-        sql: false,
-      };
-    }
-     config.experiments = { ...config.experiments, asyncWebAssembly: true };
-    return config;
-  },
+  experimental: {
+    asyncWebAssembly: true,
+  }
 };
 
 export default nextConfig;
