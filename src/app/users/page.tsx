@@ -2,12 +2,16 @@
 'use client';
 
 import * as React from 'react';
+import * as yaml from 'js-yaml';
+import * as CryptoJS from 'crypto-js';
 import {
   MoreHorizontal,
   PlusCircle,
   Search,
   Trash2,
   Edit,
+  FileDown,
+  FileUp,
 } from 'lucide-react';
 import {
   Card,
@@ -42,6 +46,7 @@ import { AddUserDialog } from '@/components/add-user-dialog';
 import { EditUserDialog } from '@/components/edit-user-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ExportUsersDialog } from '@/components/export-users-dialog';
 
 
 export default function UsersPage() {
@@ -51,6 +56,7 @@ export default function UsersPage() {
   const [userToEdit, setUserToEdit] = React.useState<User | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const router = useRouter();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (currentUser?.role !== 'admin') {
@@ -115,6 +121,99 @@ export default function UsersPage() {
     setSelectedIds(new Set());
   }
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      
+      try {
+        let importedUsers: Partial<User>[] = [];
+
+        if (fileExtension === 'json') {
+          importedUsers = JSON.parse(text);
+        } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
+          importedUsers = yaml.load(text) as Partial<User>[];
+        } else if (fileExtension === 'csv') {
+           const lines = text.split('\n').filter(line => line.trim() !== '');
+          const headerLine = lines.shift();
+          if (!headerLine) throw new Error('CSV file is empty or has no header.');
+          
+          const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
+          
+          importedUsers = lines.map((line) => {
+            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+            const entryData: {[key: string]: string | undefined} = {};
+            header.forEach((h, i) => {
+               if (h === 'id' || h === 'name' || h === 'email' || h === 'role') {
+                entryData[h] = values[i] || '';
+               }
+            });
+            return entryData as Partial<User>;
+          });
+        } else {
+          throw new Error('Unsupported file format. Please use CSV, JSON, or YAML.');
+        }
+
+        const newUsers: User[] = [];
+        const updatedUsersList = [...users];
+
+        importedUsers.forEach((entry, index) => {
+          if (!entry.id || !entry.name || !entry.email || !entry.role) {
+            console.warn(`Skipping invalid user entry at index ${index}`);
+            return;
+          }
+
+          if (entry.role !== 'admin' && entry.role !== 'guest') {
+             console.warn(`Skipping user with invalid role at index ${index}`);
+            return;
+          }
+
+          const fullEntry: User = {
+            id: entry.id,
+            name: entry.name,
+            email: entry.email,
+            role: entry.role,
+            // Passwords are not imported for security. They must be set manually.
+          };
+
+          const existingIndex = updatedUsersList.findIndex(p => p.id === fullEntry.id);
+          if (existingIndex > -1) {
+             if(updatedUsersList[existingIndex].id !== 'static_admin') {
+                updatedUsersList[existingIndex] = {...updatedUsersList[existingIndex], ...fullEntry};
+             }
+          } else {
+            newUsers.push(fullEntry);
+          }
+        });
+        
+        setUsers([...updatedUsersList, ...newUsers]);
+
+        toast({
+          title: 'Import Successful',
+          description: `${importedUsers.length} users have been processed.`,
+        });
+      } catch (error) {
+        console.error('Failed to import file:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Import Failed',
+          description: error instanceof Error ? error.message : 'Could not parse the file. Please check the format and content.',
+        });
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  };
+
+
   const filteredUsers = users.filter(
     (u) =>
       u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,7 +222,8 @@ export default function UsersPage() {
   
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(filteredUsers.map((u) => u.id)));
+      const ids = filteredUsers.map((u) => u.id).filter(id => id !== 'static_admin');
+      setSelectedIds(new Set(ids));
     } else {
       setSelectedIds(new Set());
     }
@@ -140,7 +240,8 @@ export default function UsersPage() {
   };
   
   const areAllFilteredSelected =
-    filteredUsers.length > 0 && selectedIds.size === filteredUsers.length;
+    filteredUsers.filter(u => u.id !== 'static_admin').length > 0 && 
+    selectedIds.size === filteredUsers.filter(u => u.id !== 'static_admin').length;
 
   if (currentUser?.role !== 'admin') {
     return null;
@@ -169,6 +270,23 @@ export default function UsersPage() {
                 Delete ({selectedIds.size})
               </Button>
           )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImport}
+            className="hidden"
+            accept=".csv,.json,.yaml,.yml"
+          />
+           <Button variant="outline" onClick={handleImportClick}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Import
+          </Button>
+          <ExportUsersDialog users={users}>
+            <Button variant="outline">
+              <FileUp className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </ExportUsersDialog>
           <AddUserDialog onAddUser={handleAddUser}>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -193,6 +311,7 @@ export default function UsersPage() {
                     checked={areAllFilteredSelected}
                     onCheckedChange={handleSelectAll}
                     aria-label="Select all"
+                    disabled={filteredUsers.filter(u => u.id !== 'static_admin').length === 0}
                   />
                 </TableHead>
                 <TableHead>User</TableHead>
