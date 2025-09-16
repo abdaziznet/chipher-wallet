@@ -42,8 +42,10 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         crypto: false,
+        sql: false,
       };
     }
+     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     return config;
   },
 };

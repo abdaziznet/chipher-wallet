@@ -39,13 +39,11 @@ import { Input } from '@/components/ui/input';
 import { AddPasswordDialog } from '@/components/add-password-dialog';
 import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
-import { mockPasswords } from '@/lib/data';
 import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
-
-const STORAGE_KEY = 'cipherwallet-passwords';
+import { useDb } from '@/lib/db';
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -54,42 +52,39 @@ export default function PasswordsPage() {
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
 
-  React.useEffect(() => {
-    try {
-      const storedPasswords = localStorage.getItem(STORAGE_KEY);
-      if (storedPasswords) {
-        setPasswords(JSON.parse(storedPasswords));
-      } else {
-        // If no passwords in storage, initialize with mock data
-        setPasswords(mockPasswords);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(mockPasswords));
-      }
-    } catch (error) {
-      console.error('Failed to load passwords from localStorage:', error);
-      // Fallback to mock data if localStorage is corrupt or unavailable
-      setPasswords(mockPasswords);
-    }
-  }, []);
+  const { db, error, getPasswords, addPassword, updatePassword, deletePassword, bulkInsertOrUpdate, exportDb } = useDb();
 
-  const updatePasswords = (newPasswords: PasswordEntry[]) => {
-    setPasswords(newPasswords);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newPasswords));
+  React.useEffect(() => {
+    if (db) {
+      setPasswords(getPasswords());
+    }
+  }, [db, getPasswords]);
+
+  if (error) {
+    return <div className="text-destructive">Error loading database: {error.message}</div>;
+  }
+  if (!db) {
+    return <div>Loading database...</div>;
+  }
+
+  const refreshPasswords = () => {
+    setPasswords(getPasswords());
   };
 
   const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id'>) => {
-    const newEntry = { id: `pw_${Date.now()}`, ...newPassword };
-    updatePasswords([newEntry, ...passwords]);
+    addPassword(newPassword);
+    refreshPasswords();
   };
 
   const handleEditPassword = (updatedPassword: PasswordEntry) => {
-    updatePasswords(
-      passwords.map((p) => (p.id === updatedPassword.id ? updatedPassword : p))
-    );
+    updatePassword(updatedPassword);
     setPasswordToEdit(null);
+    refreshPasswords();
   };
 
   const handleDeletePassword = (id: string) => {
-    updatePasswords(passwords.filter((p) => p.id !== id));
+    deletePassword(id);
+    refreshPasswords();
     toast({
       title: 'Password Deleted',
       description: 'The password has been successfully removed.',
@@ -144,7 +139,6 @@ export default function PasswordsPage() {
           decryptionKey = prompt('It looks like this file is encrypted. Please enter your encryption key to decrypt the passwords.') || '';
         }
         
-        const currentPasswords = [...passwords];
         const newPasswords: PasswordEntry[] = [];
 
         importedPasswords.forEach((entry, index) => {
@@ -173,19 +167,11 @@ export default function PasswordsPage() {
             password: decryptedPassword,
             website: entry.website || '',
           };
-
-          const existingIndex = currentPasswords.findIndex(p => p.id === fullEntry.id);
-
-          if (existingIndex !== -1) {
-            // Update existing password
-            currentPasswords[existingIndex] = fullEntry;
-          } else {
-            // Add new password
-            newPasswords.push(fullEntry);
-          }
+          newPasswords.push(fullEntry);
         });
         
-        updatePasswords([...newPasswords, ...currentPasswords]);
+        bulkInsertOrUpdate(newPasswords);
+        refreshPasswords();
 
         toast({
           title: 'Import Successful',
