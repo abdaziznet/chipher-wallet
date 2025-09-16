@@ -2,7 +2,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'superadmin';
+  role: 'guest' | 'admin';
 };
 
 export type PasswordEntry = {

@@ -49,6 +49,7 @@ import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useUsers } from '@/hooks/use-users';
+import { useRouter } from 'next/navigation';
 
 const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
@@ -62,9 +63,14 @@ export default function PasswordsPage() {
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = React.useState(1);
   const { currentUser } = useUsers();
+  const router = useRouter();
+
 
   React.useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
     try {
       const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedPasswords) {
@@ -79,13 +85,14 @@ export default function PasswordsPage() {
         description: 'Could not load saved passwords.',
       });
     }
-  }, [toast, currentUser]);
+  }, [toast, currentUser, router]);
 
   const updatePasswords = (newPasswords: PasswordEntry[]) => {
+    if (!currentUser) return;
     try {
       const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
       const allPasswords: PasswordEntry[] = savedPasswords ? JSON.parse(savedPasswords) : [];
-      const otherUserPasswords = allPasswords.filter(p => p.userId !== currentUser?.id);
+      const otherUserPasswords = allPasswords.filter(p => p.userId !== currentUser.id);
       const updatedAllPasswords = [...otherUserPasswords, ...newPasswords];
       
       setPasswords(newPasswords);
@@ -278,11 +285,7 @@ export default function PasswordsPage() {
     filteredPasswords.length > 0 && selectedIds.size === filteredPasswords.length && filteredPasswords.every(p => selectedIds.has(p.id));
 
   if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Please select a user to view passwords.</p>
-      </div>
-    );
+    return null;
   }
 
   return (

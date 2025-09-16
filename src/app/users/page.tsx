@@ -53,7 +53,7 @@ export default function UsersPage() {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (currentUser?.role !== 'superadmin') {
+    if (currentUser?.role !== 'admin') {
       toast({
         variant: 'destructive',
         title: 'Access Denied',
@@ -133,7 +133,7 @@ export default function UsersPage() {
   const areAllFilteredSelected =
     filteredUsers.length > 0 && selectedIds.size === filteredUsers.length;
 
-  if (currentUser?.role !== 'superadmin') {
+  if (currentUser?.role !== 'admin') {
     return null;
   }
   
@@ -216,7 +216,7 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                        <Badge variant={user.role === 'superadmin' ? 'default' : 'secondary'}>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                             {user.role}
                         </Badge>
                     </TableCell>

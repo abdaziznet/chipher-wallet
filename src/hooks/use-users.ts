@@ -7,11 +7,11 @@ import type { User } from '@/lib/types';
 const USERS_STORAGE_KEY = 'cipherwallet-users';
 const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-current-user-id';
 
-const defaultSuperAdmin: User = {
-  id: 'superadmin_01',
-  name: 'Super Admin',
+const defaultAdmin: User = {
+  id: 'admin_01',
+  name: 'Admin',
   email: 'admin@example.com',
-  role: 'superadmin',
+  role: 'admin',
 };
 
 export function useUsers() {
@@ -25,24 +25,18 @@ export function useUsers() {
       if (savedUsers) {
         setUsersState(JSON.parse(savedUsers));
       } else {
-        // Initialize with default super admin if no users are saved
-        setUsersState([defaultSuperAdmin]);
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultSuperAdmin]));
+        setUsersState([defaultAdmin]);
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([defaultAdmin]));
       }
 
       const savedCurrentUserId = localStorage.getItem(CURRENT_USER_ID_STORAGE_KEY);
       if (savedCurrentUserId) {
         setCurrentUserIdState(JSON.parse(savedCurrentUserId));
-      } else {
-        // Default to super admin if no current user is set
-        setCurrentUserIdState(defaultSuperAdmin.id);
-        localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(defaultSuperAdmin.id));
       }
     } catch (error) {
       console.error('Failed to load user data from localStorage', error);
-      // Fallback to defaults
-      setUsersState([defaultSuperAdmin]);
-      setCurrentUserIdState(defaultSuperAdmin.id);
+      setUsersState([defaultAdmin]);
+      setCurrentUserIdState(null);
     }
     setIsLoaded(true);
   }, []);
@@ -64,8 +58,7 @@ export function useUsers() {
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
       }
-      // Reload to reflect changes across the app
-       window.location.reload();
+       window.location.href = userId ? '/' : '/login';
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);
     }

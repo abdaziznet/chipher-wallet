@@ -64,7 +64,7 @@ export function UserNav() {
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                 <DropdownMenuRadioGroup value={currentUser.id} onValueChange={setCurrentUserId}>
+                 <DropdownMenuRadioGroup value={currentUser.id} onValueChange={(value) => setCurrentUserId(value)}>
                   {users.map(user => (
                     <DropdownMenuRadioItem key={user.id} value={user.id}>
                       {user.name}
@@ -74,7 +74,7 @@ export function UserNav() {
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
-           {currentUser.role === 'superadmin' && (
+           {currentUser.role === 'admin' && (
             <Link href="/users">
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
@@ -84,21 +84,25 @@ export function UserNav() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <Link href="/settings">
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-            </DropdownMenuItem>
-          </Link>
-          <DropdownMenuItem>
-            <CreditCard className="mr-2 h-4 w-4" />
-            <span>Billing</span>
-            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+         {currentUser.role === 'admin' && (
+          <>
+            <DropdownMenuGroup>
+              <Link href="/settings">
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                  <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem>
+                <CreditCard className="mr-2 h-4 w-4" />
+                <span>Billing</span>
+                <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem>
           <LifeBuoy className="mr-2 h-4 w-4" />
           <span>Support</span>

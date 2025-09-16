@@ -2,7 +2,7 @@
 
 import './globals.css';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Toaster } from '@/components/ui/toaster';
 import {
   Sidebar,
@@ -18,6 +18,7 @@ import {
 import { Home, Bot, Settings, ShieldCheck, Users } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { useUsers } from '@/hooks/use-users';
+import React from 'react';
 
 export default function RootLayout({
   children,
@@ -25,16 +26,52 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const { currentUser } = useUsers();
+  const router = useRouter();
+  const { currentUser, isLoaded } = useUsers();
 
-  const navItems = [
-    { href: '/', label: 'All Passwords', icon: Home },
-    { href: '/generator', label: 'Password Generator', icon: Bot },
-    { href: '/settings', label: 'Settings', icon: Settings },
+  const allNavItems = [
+    { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
+    { href: '/generator', label: 'Password Generator', icon: Bot, roles: ['admin', 'guest'] },
+    { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    { href: '/users', label: 'Manage Users', icon: Users, roles: ['admin'] },
   ];
 
-  if (currentUser?.role === 'superadmin') {
-    navItems.push({ href: '/users', label: 'Manage Users', icon: Users });
+  const navItems = allNavItems.filter(item => 
+    currentUser && item.roles.includes(currentUser.role)
+  );
+
+  React.useEffect(() => {
+    if (isLoaded && !currentUser && pathname !== '/login') {
+      router.push('/login');
+    }
+  }, [isLoaded, currentUser, pathname, router]);
+
+  if (!isLoaded || (!currentUser && pathname !== '/login')) {
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <title>CipherWallet</title>
+        </head>
+        <body className="font-body antialiased">
+          <div className="flex h-screen items-center justify-center">
+            {/* You can add a loading spinner here */}
+          </div>
+        </body>
+      </html>
+    );
+  }
+  
+  if (pathname === '/login') {
+    return (
+       <html lang="en" suppressHydrationWarning>
+        <head>
+          <title>Login - CipherWallet</title>
+        </head>
+        <body className="font-body antialiased bg-background">
+          <main className="flex h-screen items-center justify-center">{children}</main>
+        </body>
+      </html>
+    )
   }
 
   return (

@@ -37,7 +37,7 @@ export function EditUserDialog({ user, onEditUser, onOpenChange }: EditUserDialo
       ...user,
       name: formData.get('name') as string,
       email: formData.get('email') as string,
-      role: (formData.get('role') as 'user' | 'superadmin') || 'user',
+      role: (formData.get('role') as 'guest' | 'admin') || 'guest',
     };
     onEditUser(updatedUser);
     setOpen(false);
@@ -83,12 +83,12 @@ export function EditUserDialog({ user, onEditUser, onOpenChange }: EditUserDialo
               <Label className="text-right">Role</Label>
               <RadioGroup name="role" defaultValue={user.role} className="col-span-3 flex gap-4">
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="user" id="role-user" />
-                  <Label htmlFor="role-user">User</Label>
+                  <RadioGroupItem value="guest" id="role-guest" />
+                  <Label htmlFor="role-guest">Guest</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="superadmin" id="role-superadmin" />
-                  <Label htmlFor="role-superadmin">Super Admin</Label>
+                  <RadioGroupItem value="admin" id="role-admin" />
+                  <Label htmlFor="role-admin">Admin</Label>
                 </div>
               </RadioGroup>
             </div>
