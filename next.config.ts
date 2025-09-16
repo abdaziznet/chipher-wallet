@@ -56,6 +56,14 @@ const nextConfig: NextConfig = {
       })
     );
 
+    if (!isServer) {
+        config.resolve.fallback = {
+            ...config.resolve.fallback,
+            fs: false,
+        };
+    }
+
+
     return config;
   },
 };
