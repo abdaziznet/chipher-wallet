@@ -43,13 +43,18 @@ export function ExportDialog({ children, passwords }: ExportDialogProps) {
     let fileExtension;
 
     const passwordsToExport = passwords.map(p => {
+      const entry: Partial<PasswordEntry> & { id: string } = {
+        id: p.id,
+        appName: p.appName,
+        username: p.username,
+        password: p.password,
+        website: p.website,
+      };
+      
       if (encrypt) {
-        return {
-          ...p,
-          password: CryptoJS.AES.encrypt(p.password, encryptionKey).toString(),
-        };
+        entry.password = CryptoJS.AES.encrypt(p.password, encryptionKey).toString();
       }
-      return p;
+      return entry;
     });
 
     switch (format) {

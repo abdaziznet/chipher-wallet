@@ -70,47 +70,33 @@ export default function PasswordsPage() {
       const fileExtension = file.name.split('.').pop()?.toLowerCase();
       
       try {
-        let importedPasswords: Omit<PasswordEntry, 'id'>[] = [];
+        let importedPasswords: Partial<PasswordEntry>[] = [];
 
         if (fileExtension === 'json') {
           importedPasswords = JSON.parse(text);
         } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-          importedPasswords = yaml.load(text) as Omit<PasswordEntry, 'id'>[];
+          importedPasswords = yaml.load(text) as Partial<PasswordEntry>[];
         } else if (fileExtension === 'csv') {
           const lines = text.split('\n').filter(line => line.trim() !== '');
           const headerLine = lines.shift();
           if (!headerLine) throw new Error('CSV file is empty or has no header.');
           
           const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-          const requiredHeaders = ['appName', 'username', 'password'];
-          if (!requiredHeaders.every(h => header.includes(h))) {
-            throw new Error('Invalid CSV header. Must include appName, username, and password.');
-          }
-
-          importedPasswords = lines.map((line, index) => {
+          
+          importedPasswords = lines.map((line) => {
             const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
             const entryData: {[key: string]: string} = {};
             header.forEach((h, i) => {
               entryData[h] = values[i] || '';
             });
 
-            const entry: Omit<PasswordEntry, 'id'> = {
-              appName: entryData.appName || '',
-              username: entryData.username || '',
-              password: entryData.password || '',
-              website: entryData.website || '',
-            };
-            if (!entry.appName || !entry.username || !entry.password) {
-              throw new Error(`Invalid data on line ${index + 2}. appName, username, and password are required.`);
-            }
-            return entry;
+            return entryData as Partial<PasswordEntry>;
           });
         } else {
           throw new Error('Unsupported file format. Please use CSV, JSON, or YAML.');
         }
 
-        // Check if passwords might be encrypted and ask for a key if so
-        const firstPassword = importedPasswords[0]?.password;
+        const firstPassword = importedPasswords.find(p => p.password)?.password;
         const isLikelyEncrypted = firstPassword && (firstPassword.startsWith('U2FsdGVk') || firstPassword.length > 50);
 
         let decryptionKey = '';
@@ -118,31 +104,54 @@ export default function PasswordsPage() {
           decryptionKey = prompt('It looks like this file is encrypted. Please enter your encryption key to decrypt the passwords.') || '';
         }
         
-        const newPasswords: PasswordEntry[] = importedPasswords.map((entry, index) => {
-          let decryptedPassword = entry.password;
-          if (decryptionKey) {
-            try {
-              const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
-              decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-              if (!decryptedPassword) {
-                 throw new Error(`Decryption failed for an entry. Please check your key.`);
-              }
-            } catch (err) {
-              throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
-            }
-          }
+        setPasswords(prevPasswords => {
+          const updatedPasswords = [...prevPasswords];
+          const newPasswords: PasswordEntry[] = [];
 
-          return {
-            id: `pw_import_${Date.now()}_${index}`,
-            ...entry,
-            password: decryptedPassword,
-          };
+          importedPasswords.forEach((entry, index) => {
+            if (!entry.appName || !entry.username || !entry.password) {
+              console.warn(`Skipping invalid entry at index ${index}`);
+              return;
+            }
+
+            let decryptedPassword = entry.password;
+            if (decryptionKey) {
+              try {
+                const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
+                decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+                if (!decryptedPassword) {
+                   throw new Error(`Decryption failed for an entry. Please check your key.`);
+                }
+              } catch (err) {
+                throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
+              }
+            }
+            
+            const fullEntry: PasswordEntry = {
+              id: entry.id || `pw_import_${Date.now()}_${index}`,
+              appName: entry.appName,
+              username: entry.username,
+              password: decryptedPassword,
+              website: entry.website || '',
+            };
+
+            const existingIndex = updatedPasswords.findIndex(p => p.id === fullEntry.id);
+
+            if (existingIndex !== -1) {
+              // Update existing password
+              updatedPasswords[existingIndex] = fullEntry;
+            } else {
+              // Add new password
+              newPasswords.push(fullEntry);
+            }
+          });
+
+          return [...updatedPasswords, ...newPasswords];
         });
 
-        setPasswords(prev => [...prev, ...newPasswords]);
         toast({
           title: 'Import Successful',
-          description: `${newPasswords.length} passwords have been imported.`,
+          description: `${importedPasswords.length} passwords have been processed.`,
         });
       } catch (error) {
         console.error('Failed to import file:', error);
