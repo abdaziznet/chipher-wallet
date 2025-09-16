@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import {
   Avatar,
@@ -13,24 +14,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuPortal,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { Users, User, CreditCard, Settings, LifeBuoy, LogOut, Check } from 'lucide-react';
+import { Users, User, CreditCard, Settings, LifeBuoy, LogOut } from 'lucide-react';
 import { useUsers } from '@/hooks/use-users';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
-  const { users, currentUser, setCurrentUserId } = useUsers();
+  const { currentUser, setCurrentUserId } = useUsers();
+  const router = useRouter();
 
   if (!currentUser) {
     return null;
   }
+
+  const handleLogout = () => {
+    setCurrentUserId(null);
+  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -57,23 +57,6 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <Users className="mr-2 h-4 w-4" />
-              <span>Switch User</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                 <DropdownMenuRadioGroup value={currentUser.id} onValueChange={(value) => setCurrentUserId(value)}>
-                  {users.map(user => (
-                    <DropdownMenuRadioItem key={user.id} value={user.id}>
-                      {user.name}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
            {currentUser.role === 'admin' && (
             <Link href="/users">
               <DropdownMenuItem>
@@ -108,7 +91,7 @@ export function UserNav() {
           <span>Support</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setCurrentUserId(null)}>
+        <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
           <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>

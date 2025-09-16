@@ -4,6 +4,7 @@
 import * as React from 'react';
 import * as CryptoJS from 'crypto-js';
 import type { User } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 const USERS_STORAGE_KEY = 'cipherwallet-users';
 const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-current-user-id';
@@ -23,6 +24,7 @@ export function useUsers() {
   const [users, setUsersState] = React.useState<User[]>([]);
   const [currentUserId, setCurrentUserIdState] = React.useState<string | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     try {
@@ -60,10 +62,11 @@ export function useUsers() {
     try {
       if (userId) {
         localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(userId));
+        router.push('/');
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
+        router.push('/login');
       }
-       window.location.href = userId ? '/' : '/login';
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);
     }

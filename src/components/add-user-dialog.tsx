@@ -36,6 +36,15 @@ export function AddUserDialog({ children, onAddUser }: AddUserDialogProps) {
     const formData = new FormData(event.currentTarget);
     const password = formData.get('password') as string;
     
+    if (!password) {
+      toast({
+        variant: 'destructive',
+        title: 'Password Required',
+        description: 'Please enter a password for the new user.',
+      });
+      return;
+    }
+
     const newUser: Omit<User, 'id'> = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
