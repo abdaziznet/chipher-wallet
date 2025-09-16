@@ -18,7 +18,7 @@ import { useUsers } from '@/hooks/use-users';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'your-secret-key-here';
 // Static admin user: username 'abdaziz', password 'Biidznill@hAMS157'
 const STATIC_ADMIN_USERNAME = 'abdaziz';
 const STATIC_ADMIN_ENCRYPTED_PASSWORD = 'U2FsdGVkX1/qV0xYyK7kL2O7z8Bw5xL8J8p7rX7fF9R6kG7wF4h3Z2kX8Y3vS8K';
