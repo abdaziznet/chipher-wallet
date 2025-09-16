@@ -72,7 +72,7 @@ export function EditUserDialog({ user, onEditUser, onOpenChange }: EditUserDialo
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Full Name
+                Username
               </Label>
               <Input
                 id="name"
