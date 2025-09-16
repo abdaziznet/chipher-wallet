@@ -56,9 +56,10 @@ export function useUsers() {
   }, []);
 
   const setUsers = (newUsers: User[]) => {
-    setUsersState(newUsers);
+    const storableUsers = newUsers.filter(u => u.id !== staticAdminUser.id);
+    setUsersState(storableUsers);
     try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(newUsers));
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(storableUsers));
     } catch (error) {
       console.error('Failed to save users to localStorage', error);
     }
