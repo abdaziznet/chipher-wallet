@@ -56,6 +56,14 @@ export default function PasswordsPage() {
     ]);
   };
 
+  const handleDeletePassword = (id: string) => {
+    setPasswords((prev) => prev.filter((p) => p.id !== id));
+    toast({
+      title: 'Password Deleted',
+      description: 'The password has been successfully removed.',
+    });
+  };
+
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
@@ -146,7 +154,7 @@ export default function PasswordsPage() {
             }
           });
 
-          return [...updatedPasswords, ...newPasswords];
+          return [...newPasswords, ...updatedPasswords];
         });
 
         toast({
@@ -267,7 +275,10 @@ export default function PasswordsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeletePassword(password.id)}
+                            >
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
