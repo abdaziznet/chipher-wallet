@@ -43,7 +43,12 @@ export async function updatePasswordAction(
   try {
     const cookieStore = cookies();
     const currentUserIdCookie = cookieStore.get(CURRENT_USER_ID_STORAGE_KEY);
-    const currentUserId = currentUserIdCookie ? JSON.parse(currentUserIdCookie.value) : null;
+    
+    if (!currentUserIdCookie || !currentUserIdCookie.value) {
+      return { error: 'No user is currently logged in.' };
+    }
+    
+    const currentUserId = JSON.parse(currentUserIdCookie.value);
     
     if (!currentUserId) {
       return { error: 'No user is currently logged in.' };

@@ -18,10 +18,10 @@ import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'your-secret-key-here';
-// Static admin user: username 'abdaziz', password 'Biidznill@hAMS157'
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'U2FsdGVkX1/juNInQE+kE46DRr9awcvcFKs3vxOp3QA=';
+// Static admin user
 const STATIC_ADMIN_USERNAME = 'abdaziz';
-const STATIC_ADMIN_PASSWORD = 'Biidznill@hAMS157';
+const STATIC_ADMIN_PASSWORD_ENCRYPT = 'U2FsdGVkX1/+Bfj5qtk7zfNCqJJz1D43Lq7lKyRmu9sRAjQliH/m+DmnlBFzaOm+';
 
 export default function LoginPage() {
   const { users, setCurrentUserId, currentUser } = useSession();
@@ -41,9 +41,13 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
+    let decryptedPassword = '';
+
     // Handle static admin login
     if (username.toLowerCase() === STATIC_ADMIN_USERNAME) {
-      if (password === STATIC_ADMIN_PASSWORD) {
+      const bytes = CryptoJS.AES.decrypt(STATIC_ADMIN_PASSWORD_ENCRYPT, ENCRYPTION_KEY);
+            decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
+      if (password === decryptedPassword) {
         setCurrentUserId('static_admin');
       } else {
         setError('Invalid username or password.');
@@ -59,7 +63,6 @@ export default function LoginPage() {
       return;
     }
 
-    let decryptedPassword = '';
     if (user.password) {
         try {
             const bytes = CryptoJS.AES.decrypt(user.password, ENCRYPTION_KEY);
