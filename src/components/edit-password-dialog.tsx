@@ -1,6 +1,8 @@
+
 'use client';
 
 import * as React from 'react';
+import * as CryptoJS from 'crypto-js';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -20,6 +22,8 @@ interface EditPasswordDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+
 export function EditPasswordDialog({
   password,
   onEditPassword,
@@ -27,6 +31,16 @@ export function EditPasswordDialog({
 }: EditPasswordDialogProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [open, setOpen] = React.useState(true);
+  
+  const decryptedPassword = React.useMemo(() => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(password.password, DECRYPTION_KEY);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return decrypted || password.password;
+    } catch {
+      return password.password;
+    }
+  }, [password.password]);
 
   React.useEffect(() => {
     onOpenChange(open);
@@ -88,7 +102,7 @@ export function EditPasswordDialog({
               <Input
                 id="password"
                 name="password"
-                defaultValue={password.password}
+                defaultValue={decryptedPassword}
                 type="password"
                 className="col-span-3"
                 required

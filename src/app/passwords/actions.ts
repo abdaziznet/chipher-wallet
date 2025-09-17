@@ -17,6 +17,9 @@ type ActionResult = {
   message?: string;
 };
 
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+
+
 export async function addPasswordAction(
   newPassword: Omit<PasswordEntry, 'id'>
 ): Promise<ActionResult> {
@@ -24,8 +27,10 @@ export async function addPasswordAction(
     if (!newPassword.userId) {
       return { error: 'User not authenticated.' };
     }
+
+    const encryptedPassword = CryptoJS.AES.encrypt(newPassword.password, ENCRYPTION_KEY).toString();
     
-    await addPassword(newPassword);
+    await addPassword({ ...newPassword, password: encryptedPassword });
     return { message: 'Password added successfully.' };
   } catch (error) {
     console.error('Failed to add password:', error);
@@ -40,7 +45,12 @@ export async function updatePasswordAction(
      if (!updatedPassword.userId) {
       return { error: 'User not authenticated or unauthorized.' };
     }
-    await updatePassword(updatedPassword);
+
+    // Assume the password might not be encrypted if it's being updated from the form.
+    // A more robust solution might check if it's already encrypted.
+    const encryptedPassword = CryptoJS.AES.encrypt(updatedPassword.password, ENCRYPTION_KEY).toString();
+
+    await updatePassword({ ...updatedPassword, password: encryptedPassword });
     return { message: 'Password updated successfully.' };
   } catch (error) {
     console.error('Failed to update password:', error);
@@ -150,10 +160,10 @@ export async function importPasswordsAction(input: ImportInput): Promise<ActionR
       };
 
       if (fullEntry.id && existingIds.has(fullEntry.id)) {
-        await updatePassword(fullEntry as PasswordEntry);
+        await updatePasswordAction(fullEntry as PasswordEntry);
       } else {
         delete fullEntry.id;
-        await addPassword(fullEntry as Omit<PasswordEntry, 'id'>);
+        await addPasswordAction(fullEntry as Omit<PasswordEntry, 'id'>);
       }
     }
 

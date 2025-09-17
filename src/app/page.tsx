@@ -61,6 +61,8 @@ import {
 } from './passwords/actions';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
+const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -73,6 +75,17 @@ export default function PasswordsPage() {
   const { currentUser } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
+
+  const decryptPassword = (password: string) => {
+    try {
+      const bytes = CryptoJS.AES.decrypt(password, DECRYPTION_KEY);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return decrypted || password; // Return original if decryption fails
+    } catch (e) {
+      return password; // Return original on error
+    }
+  };
+
 
   const fetchPasswords = React.useCallback(async () => {
     if (!currentUser) return;
@@ -332,7 +345,7 @@ export default function PasswordsPage() {
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <CopyButton
-                          valueToCopy={password.password}
+                          valueToCopy={decryptPassword(password.password)}
                           tooltip="Copy password"
                         >
                           <KeyRound className="h-4 w-4" />
