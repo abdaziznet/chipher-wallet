@@ -23,7 +23,16 @@ export async function generatePasswordAction(
   formData: FormData
 ): Promise<State> {
   const data = Object.fromEntries(formData);
-  const parsed = formSchema.safeParse(data);
+  // Unchecked switches don't appear in formData, so we need to provide defaults
+  const dataWithDefaults = {
+    includeUppercase: false,
+    includeLowercase: false,
+    includeNumbers: false,
+    includeSymbols: false,
+    ...data,
+  };
+  const parsed = formSchema.safeParse(dataWithDefaults);
+
 
   if (!parsed.success) {
     console.error(parsed.error.flatten());
