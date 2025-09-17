@@ -80,12 +80,12 @@ export default function PasswordsPage() {
     try {
       const userPasswords = await getPasswords(currentUser.id);
       setPasswords(userPasswords);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load passwords', error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not load saved passwords from the cloud.',
+        title: 'Error Loading Passwords',
+        description: error.message || 'Could not load saved passwords from the cloud.',
       });
     } finally {
       setIsLoading(false);
@@ -102,7 +102,7 @@ export default function PasswordsPage() {
 
   const handleAddPassword = async (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => {
     if (!currentUser) return;
-    const result = await addPasswordAction(newPassword);
+    const result = await addPasswordAction({ ...newPassword, userId: currentUser.id });
     if (result.error) {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
@@ -417,4 +417,3 @@ export default function PasswordsPage() {
     </>
   );
 }
-

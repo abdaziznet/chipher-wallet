@@ -11,32 +11,21 @@ import {
 import type { PasswordEntry } from '@/lib/types';
 import * as yaml from 'js-yaml';
 import * as CryptoJS from 'crypto-js';
-import { headers } from 'next/headers';
-
 
 type ActionResult = {
   error?: string;
   message?: string;
 };
 
-// Helper function to get user ID from headers
-async function getUserId(): Promise<string | null> {
-    const heads = headers();
-    const userId = heads.get('x-user-id');
-    return userId;
-}
-
-
 export async function addPasswordAction(
-  newPassword: Omit<PasswordEntry, 'id' | 'userId'>
+  newPassword: Omit<PasswordEntry, 'id'>
 ): Promise<ActionResult> {
   try {
-    const currentUserId = await getUserId();
-    if (!currentUserId) {
+    if (!newPassword.userId) {
       return { error: 'User not authenticated.' };
     }
     
-    await addPassword({ ...newPassword, userId: currentUserId });
+    await addPassword(newPassword);
     return { message: 'Password added successfully.' };
   } catch (error) {
     console.error('Failed to add password:', error);
@@ -48,8 +37,7 @@ export async function updatePasswordAction(
   updatedPassword: PasswordEntry
 ): Promise<ActionResult> {
   try {
-    const currentUserId = await getUserId();
-    if (!currentUserId || updatedPassword.userId !== currentUserId) {
+     if (!updatedPassword.userId) {
       return { error: 'User not authenticated or unauthorized.' };
     }
     await updatePassword(updatedPassword);
@@ -62,9 +50,8 @@ export async function updatePasswordAction(
 
 export async function deletePasswordAction(id: string): Promise<ActionResult> {
   try {
-    // We should verify the user owns this password before deleting,
-    // but the logic is simplified here. In a real app, you'd fetch
-    // the password by ID and check its userId against currentUserId.
+    // In a real app, you'd verify ownership before deleting.
+    // The flow in a real app would receive the userId.
     await deletePassword(id);
     return { message: 'Password deleted successfully.' };
   } catch (error) {
@@ -91,6 +78,9 @@ interface ImportInput {
 
 export async function importPasswordsAction(input: ImportInput): Promise<ActionResult> {
   const { fileContent, fileName, userId } = input;
+   if (!userId) {
+      return { error: 'User not authenticated.' };
+    }
   const fileExtension = fileName.split('.').pop()?.toLowerCase();
   
   try {
