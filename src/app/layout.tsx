@@ -16,10 +16,13 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Home, Bot, Wrench, ShieldCheck } from 'lucide-react';
+import { Home, Bot, Wrench, ShieldCheck, Robot } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { SessionProvider, useSession } from '@/contexts/session-context';
 import React from 'react';
+import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeToggle } from '@/components/theme-toggle';
+
 
 function AppLayout({
   children,
@@ -32,7 +35,7 @@ function AppLayout({
 
   const allNavItems = [
     { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
-    { href: '/generator', label: 'Password Generator', icon: Bot, roles: ['admin', 'guest'] },
+    { href: '/generator', label: 'Password Generator', icon: Robot, roles: ['admin', 'guest'] },
     { href: '/tools', label: 'Tools', icon: Wrench, roles: ['admin'] },
   ];
   
@@ -125,6 +128,7 @@ function AppLayout({
             <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
               <SidebarTrigger className="md:hidden" />
               <div className="flex items-center gap-4 ml-auto">
+                 <ThemeToggle />
                  <UserNav />
               </div>
             </header>
@@ -143,7 +147,14 @@ export default function RootLayout({
 }>) {
   return (
     <SessionProvider>
-      <AppLayout>{children}</AppLayout>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <AppLayout>{children}</AppLayout>
+      </ThemeProvider>
     </SessionProvider>
   )
 }
