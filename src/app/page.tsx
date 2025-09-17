@@ -7,10 +7,8 @@ import * as CryptoJS from 'crypto-js';
 import {
   MoreHorizontal,
   PlusCircle,
-  FileUp,
   Search,
   KeyRound,
-  FileDown,
   Trash2,
   ChevronLeft,
   ChevronRight,
@@ -46,7 +44,6 @@ import { CopyButton } from '@/components/copy-button';
 import type { PasswordEntry } from '@/lib/types';
 import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
-import { ExportDialog } from '@/components/export-dialog';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useSession } from '@/contexts/session-context';
@@ -57,7 +54,6 @@ import {
   deletePasswordAction,
   deletePasswordsAction,
   updatePasswordAction,
-  importPasswordsAction
 } from './passwords/actions';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
@@ -67,7 +63,6 @@ const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [passwords, setPasswords] = React.useState<PasswordEntry[]>([]);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [passwordToEdit, setPasswordToEdit] = React.useState<PasswordEntry | null>(null);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
@@ -125,7 +120,8 @@ export default function PasswordsPage() {
   };
 
   const handleEditPassword = async (updatedPassword: PasswordEntry) => {
-    const result = await updatePasswordAction(updatedPassword);
+    if (!currentUser) return;
+    const result = await updatePasswordAction({ ...updatedPassword, userId: currentUser.id });
     if (result.error) {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
@@ -161,37 +157,6 @@ export default function PasswordsPage() {
       });
       setSelectedIds(new Set());
     }
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !currentUser) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target?.result as string;
-      const result = await importPasswordsAction({ fileContent: text, fileName: file.name, userId: currentUser.id });
-      
-      if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: 'Import Failed',
-          description: result.error,
-        });
-      } else {
-        toast({
-          title: 'Import Successful',
-          description: result.message,
-        });
-        await fetchPasswords();
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
   };
 
   const filteredPasswords = passwords.filter(
@@ -254,23 +219,6 @@ export default function PasswordsPage() {
                 Delete ({selectedIds.size})
               </Button>
           )}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImport}
-            className="hidden"
-            accept=".csv,.json,.yaml,.yml"
-          />
-          <Button variant="outline" onClick={handleImportClick}>
-            <FileDown className="mr-2 h-4 w-4" />
-            Import
-          </Button>
-          <ExportDialog passwords={passwords}>
-            <Button variant="outline">
-              <FileUp className="mr-2 h-4 w-4" />
-              Export
-            </Button>
-          </ExportDialog>
           <AddPasswordDialog onAddPassword={handleAddPassword}>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
