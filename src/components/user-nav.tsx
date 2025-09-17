@@ -61,17 +61,6 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-           {currentUser.role === 'admin' && (
-            <Link href="/users">
-              <DropdownMenuItem>
-                <Users className="mr-2 h-4 w-4" />
-                <span>Manage Users</span>
-              </DropdownMenuItem>
-            </Link>
-          )}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
          <DropdownMenuGroup>
               <Link href="/settings">
                 <DropdownMenuItem>

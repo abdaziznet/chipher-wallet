@@ -35,7 +35,6 @@ function AppLayout({
     { href: '/generator', label: 'Password Generator', icon: Bot, roles: ['admin', 'guest'] },
     { href: '/tools', label: 'Tools', icon: Wrench, roles: ['admin'] },
     { href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'guest'] },
-    { href: '/users', label: 'Manage Users', icon: Users, roles: ['admin'] },
   ];
   
   React.useEffect(() => {
