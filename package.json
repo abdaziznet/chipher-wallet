@@ -45,6 +45,7 @@
     "embla-carousel-react": "^8.6.0",
     "firebase": "^10.12.2",
     "firebase-admin": "^12.1.1",
+    "generate-password": "^1.6.3",
     "genkit": "^1.14.1",
     "googleapis": "^140.0.1",
     "js-yaml": "^4.1.0",
@@ -62,6 +63,7 @@
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
+    "@types/generate-password": "^1.5.3",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18",
