@@ -14,13 +14,8 @@ interface SessionContextType {
 
 const SessionContext = React.createContext<SessionContextType | undefined>(undefined);
 
-// Mapping of Firebase user UIDs to roles.
-// In a real application, this should come from a secure backend.
-const userRoles: { [uid: string]: 'admin' | 'guest' } = {
-  // Replace with the Firebase UID of your admin user after they sign in once.
-  // 'FIREBASE_UID_OF_ADMIN': 'admin',
-};
-
+// The email address for the admin user.
+const ADMIN_EMAIL = 'file.azis@gmail.com';
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
@@ -29,7 +24,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        const role = userRoles[firebaseUser.uid] || 'guest';
+        // Determine role based on email address.
+        const role = firebaseUser.email === ADMIN_EMAIL ? 'admin' : 'guest';
+        
         setCurrentUser({
           id: firebaseUser.uid,
           name: firebaseUser.displayName || 'User',
@@ -49,11 +46,6 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const value = {
     currentUser,
     isLoaded,
-    // The following are no longer needed but kept for compatibility to avoid breaking other components immediately.
-    // They should be removed in a follow-up refactoring.
-    users: currentUser ? [currentUser] : [],
-    setUsers: () => {},
-    setCurrentUserId: () => {},
   };
 
   return (
