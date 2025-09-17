@@ -55,7 +55,10 @@ export async function updatePasswordAction(
     }
 
     const savedUsersCookie = cookieStore.get(USERS_STORAGE_KEY);
-    let users: User[] = savedUsersCookie ? JSON.parse(savedUsersCookie.value) : [];
+    if (!savedUsersCookie || !savedUsersCookie.value) {
+        return { error: 'Could not retrieve user data.' };
+    }
+    let users: User[] = JSON.parse(savedUsersCookie.value);
 
     const userIndex = users.findIndex(u => u.id === currentUserId);
     const user = userIndex !== -1 ? users[userIndex] : null;

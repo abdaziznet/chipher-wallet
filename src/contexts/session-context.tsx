@@ -26,6 +26,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       document.cookie = `cipherwallet-auth-users=${JSON.stringify(storableUsers)};path=/`;
       if (currentUser) {
         document.cookie = `cipherwallet-auth-current-user-id=${JSON.stringify(currentUser.id)};path=/`;
+      } else {
+        document.cookie = 'cipherwallet-auth-current-user-id=;path=/;max-age=0';
       }
     }
   }, [users, isLoaded, currentUser]);
