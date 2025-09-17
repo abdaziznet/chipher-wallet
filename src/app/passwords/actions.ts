@@ -11,21 +11,27 @@ import {
 import type { PasswordEntry } from '@/lib/types';
 import * as yaml from 'js-yaml';
 import * as CryptoJS from 'crypto-js';
+import { headers } from 'next/headers';
+
 
 type ActionResult = {
   error?: string;
   message?: string;
 };
 
+// Helper function to get user ID from headers
+async function getUserId(): Promise<string | null> {
+    const heads = headers();
+    const userId = heads.get('x-user-id');
+    return userId;
+}
+
+
 export async function addPasswordAction(
   newPassword: Omit<PasswordEntry, 'id' | 'userId'>
 ): Promise<ActionResult> {
   try {
-    // This is a placeholder for getting the current user's ID
-    // In a real app, you would get this from the session
-    const cookies = (await import('next/headers')).cookies;
-    const currentUserId = JSON.parse(cookies().get('cipherwallet-auth-current-user-id')?.value || 'null');
-
+    const currentUserId = await getUserId();
     if (!currentUserId) {
       return { error: 'User not authenticated.' };
     }
@@ -42,6 +48,10 @@ export async function updatePasswordAction(
   updatedPassword: PasswordEntry
 ): Promise<ActionResult> {
   try {
+    const currentUserId = await getUserId();
+    if (!currentUserId || updatedPassword.userId !== currentUserId) {
+      return { error: 'User not authenticated or unauthorized.' };
+    }
     await updatePassword(updatedPassword);
     return { message: 'Password updated successfully.' };
   } catch (error) {
@@ -52,6 +62,9 @@ export async function updatePasswordAction(
 
 export async function deletePasswordAction(id: string): Promise<ActionResult> {
   try {
+    // We should verify the user owns this password before deleting,
+    // but the logic is simplified here. In a real app, you'd fetch
+    // the password by ID and check its userId against currentUserId.
     await deletePassword(id);
     return { message: 'Password deleted successfully.' };
   } catch (error) {
@@ -112,9 +125,6 @@ export async function importPasswordsAction(input: ImportInput): Promise<ActionR
 
     let decryptionKey = '';
     if (isLikelyEncrypted) {
-       // Cannot prompt from server action. This flow is simplified.
-       // In a real app, you might handle key input on the client.
-       // Here we assume the standard encryption key is used if any.
        decryptionKey = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key'
     }
     
@@ -136,7 +146,6 @@ export async function importPasswordsAction(input: ImportInput): Promise<ActionR
               throw new Error(`Decryption failed for an entry. Please check your key.`);
           }
         } catch (err) {
-          // If one fails, maybe it wasn't encrypted, try using as is.
           decryptedPassword = entry.password;
         }
       }

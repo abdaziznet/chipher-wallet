@@ -1,43 +1,59 @@
 
-
 'use client';
 
 import * as React from 'react';
+import type { User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import type { User } from '@/lib/types';
-import { useUsers } from '@/hooks/use-users';
 
 interface SessionContextType {
   currentUser: User | null;
-  users: User[];
-  setUsers: (users: User[]) => void;
-  setCurrentUserId: (userId: string | null) => void;
   isLoaded: boolean;
 }
 
 const SessionContext = React.createContext<SessionContextType | undefined>(undefined);
 
-export function SessionProvider({ children }: { children: React.ReactNode }) {
-  const { users, setUsers, currentUser, setCurrentUserId, isLoaded } = useUsers();
+// Mapping of Firebase user UIDs to roles.
+// In a real application, this should come from a secure backend.
+const userRoles: { [uid: string]: 'admin' | 'guest' } = {
+  // Replace with the Firebase UID of your admin user after they sign in once.
+  // 'FIREBASE_UID_OF_ADMIN': 'admin',
+};
 
-  // Workaround to make users available in Server Actions
+
+export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+
   React.useEffect(() => {
-    if (isLoaded) {
-      const storableUsers = users.filter(u => u.id !== 'static_admin');
-      document.cookie = `cipherwallet-auth-users=${JSON.stringify(storableUsers)};path=/`;
-      if (currentUser) {
-        document.cookie = `cipherwallet-auth-current-user-id=${JSON.stringify(currentUser.id)};path=/`;
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        const role = userRoles[firebaseUser.uid] || 'guest';
+        setCurrentUser({
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || 'User',
+          email: firebaseUser.email || '',
+          role: role,
+        });
       } else {
-        document.cookie = 'cipherwallet-auth-current-user-id=;path=/;max-age=0';
+        setCurrentUser(null);
       }
-    }
-  }, [users, isLoaded, currentUser]);
+      setIsLoaded(true);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
   const value = {
     currentUser,
-    users,
-    setUsers,
-    setCurrentUserId,
     isLoaded,
+    // The following are no longer needed but kept for compatibility to avoid breaking other components immediately.
+    // They should be removed in a follow-up refactoring.
+    users: currentUser ? [currentUser] : [],
+    setUsers: () => {},
+    setCurrentUserId: () => {},
   };
 
   return (

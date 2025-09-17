@@ -16,19 +16,25 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, User, CreditCard, Settings, LifeBuoy, LogOut } from 'lucide-react';
+import { Users, Settings, CreditCard, LifeBuoy, LogOut } from 'lucide-react';
 import { useSession } from '@/contexts/session-context';
 import Link from 'next/link';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+
 
 export function UserNav() {
-  const { currentUser, setCurrentUserId } = useSession();
+  const { currentUser } = useSession();
+  const router = useRouter();
 
   if (!currentUser) {
     return null;
   }
 
-  const handleLogout = () => {
-    setCurrentUserId(null);
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
   };
 
   const getInitials = (name: string) => {
@@ -66,9 +72,7 @@ export function UserNav() {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-         {currentUser.role === 'admin' && (
-          <>
-            <DropdownMenuGroup>
+         <DropdownMenuGroup>
               <Link href="/settings">
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
@@ -76,15 +80,15 @@ export function UserNav() {
                   <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </Link>
-              <DropdownMenuItem>
-                <CreditCard className="mr-2 h-4 w-4" />
-                <span>Billing</span>
-                <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-          </>
-        )}
+              {currentUser.role === 'admin' && (
+                <DropdownMenuItem>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  <span>Billing</span>
+                  <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                </DropdownMenuItem>
+              )}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuItem>
           <LifeBuoy className="mr-2 h-4 w-4" />
           <span>Support</span>
