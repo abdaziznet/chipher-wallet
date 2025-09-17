@@ -62,13 +62,6 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
          <DropdownMenuGroup>
-              <Link href="/settings">
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                  <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                </DropdownMenuItem>
-              </Link>
               {currentUser.role === 'admin' && (
                 <DropdownMenuItem>
                   <CreditCard className="mr-2 h-4 w-4" />
