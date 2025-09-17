@@ -8,7 +8,7 @@ import type { User } from '@/lib/types';
 
 const USERS_STORAGE_KEY = 'cipherwallet-auth-users';
 const CURRENT_USER_ID_STORAGE_KEY = 'cipherwallet-auth-current-user-id';
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
+const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'U2FsdGVkX1/juNInQE+kE46DRr9awcvcFKs3vxOp3QA=';
 
 
 const formSchema = z.object({

@@ -13,7 +13,7 @@ const defaultGuest: Omit<User, 'id'> = {
   name: 'Guest',
   email: 'guest@example.com',
   role: 'guest',
-  password: 'default-guest-password-should-be-encrypted', // This should be handled properly on creation
+  password: 'U2FsdGVkX192k9p1aE/RxE8vI4+soA4J8T6OqD/GuSo=', // "password"
 };
 
 const staticAdminUser: User = {
@@ -36,9 +36,6 @@ export function useUsers() {
       } else {
         // On first load, if no users, set a default guest.
         const initialGuest = { ...defaultGuest, id: 'guest_01' };
-        // Note: In a real app, you would securely encrypt the default password.
-        // For this context, we assume the add-user flow handles encryption.
-        // Here, we're just setting up initial data.
         setUsersState([initialGuest]);
         localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([initialGuest]));
       }
@@ -61,8 +58,6 @@ export function useUsers() {
     setUsersState(storableUsers);
     try {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(storableUsers));
-      // Also update the cookie for server actions
-      document.cookie = `cipherwallet-auth-users=${JSON.stringify(storableUsers)};path=/`;
     } catch (error) {
       console.error('Failed to save users to localStorage', error);
     }
@@ -73,10 +68,8 @@ export function useUsers() {
     try {
       if (userId) {
         localStorage.setItem(CURRENT_USER_ID_STORAGE_KEY, JSON.stringify(userId));
-        document.cookie = `cipherwallet-auth-current-user-id=${JSON.stringify(userId)};path=/`;
       } else {
         localStorage.removeItem(CURRENT_USER_ID_STORAGE_KEY);
-        document.cookie = `cipherwallet-auth-current-user-id=;path=/;max-age=0`;
       }
     } catch (error) {
       console.error('Failed to save current user ID to localStorage', error);
@@ -108,7 +101,7 @@ export function useUsers() {
         if (cookieValue) {
             try {
                 const usersFromCookie = JSON.parse(decodeURIComponent(cookieValue));
-                const currentUsersString = JSON.stringify(users);
+                const currentUsersString = JSON.stringify(users.filter(u => u.id !== 'static_admin'));
                 if(JSON.stringify(usersFromCookie) !== currentUsersString) {
                     setUsersState(usersFromCookie);
                     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersFromCookie));
