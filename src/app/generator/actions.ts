@@ -6,10 +6,10 @@ import { z } from 'zod';
 
 const formSchema = z.object({
   length: z.coerce.number().min(8).max(64),
-  includeUppercase: z.string().transform(v => v === 'on').or(z.boolean()).default(false),
-  includeLowercase: z.string().transform(v => v === 'on').or(z.boolean()).default(false),
-  includeNumbers: z.string().transform(v => v === 'on').or(z.boolean()).default(false),
-  includeSymbols: z.string().transform(v => v === 'on').or(z.boolean()).default(false),
+  includeUppercase: z.coerce.boolean().default(false),
+  includeLowercase: z.coerce.boolean().default(false),
+  includeNumbers: z.coerce.boolean().default(false),
+  includeSymbols: z.coerce.boolean().default(false),
 });
 
 
