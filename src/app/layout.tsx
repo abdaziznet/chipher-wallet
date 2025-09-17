@@ -16,7 +16,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Home, Bot, Wrench, ShieldCheck, Robot } from 'lucide-react';
+import { Home, Wrench, ShieldCheck, ShieldEllipsis } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { SessionProvider, useSession } from '@/contexts/session-context';
 import React from 'react';
@@ -35,7 +35,7 @@ function AppLayout({
 
   const allNavItems = [
     { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
-    { href: '/generator', label: 'Password Generator', icon: Robot, roles: ['admin', 'guest'] },
+    { href: '/generator', label: 'Password Generator', icon: ShieldEllipsis, roles: ['admin', 'guest'] },
     { href: '/tools', label: 'Tools', icon: Wrench, roles: ['admin'] },
   ];
   
