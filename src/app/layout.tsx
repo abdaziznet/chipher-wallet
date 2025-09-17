@@ -33,7 +33,6 @@ function AppLayout({
   const allNavItems = [
     { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
     { href: '/generator', label: 'Password Generator', icon: Bot, roles: ['admin', 'guest'] },
-    { href: '/breach-monitoring', label: 'Breach Monitoring', icon: ShieldAlert, roles: ['admin', 'guest'] },
     { href: '/tools', label: 'Tools', icon: Wrench, roles: ['admin'] },
   ];
   
