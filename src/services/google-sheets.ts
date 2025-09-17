@@ -41,8 +41,50 @@ const mapPasswordEntryToRow = (entry: Partial<PasswordEntry>): any[] => [
   entry.website || '',
 ];
 
+// This function ensures the 'Passwords' sheet exists, and creates it with a header if it doesn't.
+const ensureSheetExists = async () => {
+  const sheets = getSheetsApi();
+  const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+  if (!spreadsheetId) {
+    throw new Error('GOOGLE_SHEET_ID is not set in .env file.');
+  }
+  
+  try {
+    const spreadsheetInfo = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheetExists = spreadsheetInfo.data.sheets?.some(
+      s => s.properties?.title === SHEET_NAME
+    );
+
+    if (!sheetExists) {
+      // Sheet does not exist, create it.
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        requestBody: {
+          requests: [{ addSheet: { properties: { title: SHEET_NAME } } }],
+        },
+      });
+
+      // Add header row to the new sheet
+      const header = ['id', 'userId', 'appName', 'username', 'password', 'website'];
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${SHEET_NAME}!A1`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: {
+          values: [header],
+        },
+      });
+    }
+  } catch (error: any) {
+    console.error('Google Sheets API error (ensureSheetExists):', error.message);
+    throw new Error(`Failed to ensure sheet exists in Google Sheets: ${error.message}`);
+  }
+};
+
+
 export async function getPasswords(userId: string): Promise<PasswordEntry[]> {
   try {
+    await ensureSheetExists();
     const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
@@ -66,6 +108,7 @@ export async function getPasswords(userId: string): Promise<PasswordEntry[]> {
 }
 
 export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promise<PasswordEntry> {
+  await ensureSheetExists();
   const entry = { ...newPassword, id: `pw_${Date.now()}` };
   const row = mapPasswordEntryToRow(entry);
 
@@ -87,6 +130,7 @@ export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promi
 }
 
 export async function updatePassword(updatedPassword: PasswordEntry): Promise<PasswordEntry> {
+  await ensureSheetExists();
   try {
     const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
@@ -120,6 +164,7 @@ export async function updatePassword(updatedPassword: PasswordEntry): Promise<Pa
 }
 
 export async function deletePassword(id: string): Promise<void> {
+  await ensureSheetExists();
   try {
     const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
@@ -169,6 +214,7 @@ export async function deletePassword(id: string): Promise<void> {
 
 export async function deletePasswords(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
+  await ensureSheetExists();
   try {
     const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
