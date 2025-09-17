@@ -16,6 +16,7 @@ import {
   deletePasswords as deletePasswordsFromSheet,
 } from '@/services/google-sheets';
 import type { PasswordEntry } from '@/lib/types';
+import { passwordCategories } from '@/lib/types';
 
 // Schemas for data validation
 const PasswordEntrySchema = z.object({
@@ -25,6 +26,7 @@ const PasswordEntrySchema = z.object({
   username: z.string(),
   password: z.string(),
   website: z.string().optional(),
+  category: z.enum(passwordCategories),
 });
 
 const GetPasswordsInputSchema = z.object({
@@ -38,6 +40,7 @@ const AddPasswordInputSchema = z.object({
   username: z.string(),
   password: z.string(),
   website: z.string().optional(),
+  category: z.enum(passwordCategories),
 });
 const AddPasswordOutputSchema = PasswordEntrySchema;
 
@@ -135,4 +138,3 @@ const deletePasswordsFlow = ai.defineFlow(
     return { success: true };
   }
 );
-

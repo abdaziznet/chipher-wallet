@@ -14,7 +14,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { PasswordEntry } from '@/lib/types';
+import type { PasswordEntry, PasswordCategory } from '@/lib/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { passwordCategories } from '@/lib/types';
 
 interface EditPasswordDialogProps {
   password: PasswordEntry;
@@ -31,6 +39,7 @@ export function EditPasswordDialog({
 }: EditPasswordDialogProps) {
   const formRef = React.useRef<HTMLFormElement>(null);
   const [open, setOpen] = React.useState(true);
+  const [category, setCategory] = React.useState<PasswordCategory>(password.category || 'other');
   
   const decryptedPassword = React.useMemo(() => {
     try {
@@ -55,6 +64,7 @@ export function EditPasswordDialog({
       username: formData.get('username') as string,
       password: formData.get('password') as string,
       website: formData.get('website') as string,
+      category,
     };
     onEditPassword(updatedPassword);
     setOpen(false);
@@ -119,6 +129,21 @@ export function EditPasswordDialog({
                 placeholder="https://example.com"
                 className="col-span-3"
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                Category
+              </Label>
+              <Select onValueChange={(value: PasswordCategory) => setCategory(value)} defaultValue={category}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {passwordCategories.map(cat => (
+                    <SelectItem key={cat} value={cat} className="capitalize">{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </form>

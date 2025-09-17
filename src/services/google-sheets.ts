@@ -1,6 +1,7 @@
 
 import { google } from 'googleapis';
-import type { PasswordEntry } from '@/lib/types';
+import type { PasswordEntry, PasswordCategory } from '@/lib/types';
+import { passwordCategories } from '@/lib/types';
 
 const SHEET_NAME = 'Passwords'; // Name of the sheet/tab in your Google Sheet document
 
@@ -30,6 +31,7 @@ const mapRowToPasswordEntry = (row: any[]): PasswordEntry => ({
   username: row[3],
   password: row[4],
   website: row[5] || '',
+  category: passwordCategories.includes(row[6]) ? row[6] : 'other',
 });
 
 const mapPasswordEntryToRow = (entry: Partial<PasswordEntry>): any[] => [
@@ -39,6 +41,7 @@ const mapPasswordEntryToRow = (entry: Partial<PasswordEntry>): any[] => [
   entry.username || '',
   entry.password || '',
   entry.website || '',
+  entry.category || 'other',
 ];
 
 // This function ensures the 'Passwords' sheet exists, and creates it with a header if it doesn't.
@@ -65,7 +68,7 @@ const ensureSheetExists = async () => {
       });
 
       // Add header row to the new sheet
-      const header = ['id', 'userId', 'appName', 'username', 'password', 'website'];
+      const header = ['id', 'userId', 'appName', 'username', 'password', 'website', 'category'];
       await sheets.spreadsheets.values.append({
         spreadsheetId,
         range: `${SHEET_NAME}!A1`,
@@ -74,6 +77,23 @@ const ensureSheetExists = async () => {
           values: [header],
         },
       });
+    } else {
+        // Sheet exists, check for header and add category if missing
+        const headerResponse = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range: `${SHEET_NAME}!1:1`,
+        });
+        const header = headerResponse.data.values?.[0] || [];
+        if (!header.includes('category')) {
+            await sheets.spreadsheets.values.update({
+                spreadsheetId,
+                range: `${SHEET_NAME}!G1`,
+                valueInputOption: 'USER_ENTERED',
+                requestBody: {
+                    values: [['category']],
+                },
+            });
+        }
     }
   } catch (error: any) {
     console.error('Google Sheets API error (ensureSheetExists):', error.message);
@@ -88,7 +108,7 @@ export async function getPasswords(userId: string): Promise<PasswordEntry[]> {
     const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${SHEET_NAME}!A:F`,
+      range: `${SHEET_NAME}!A:G`,
     });
 
     const rows = response.data.values;
@@ -116,7 +136,7 @@ export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promi
     const sheets = getSheetsApi();
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${SHEET_NAME}!A:F`,
+      range: `${SHEET_NAME}!A:G`,
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [row],
@@ -150,7 +170,7 @@ export async function updatePassword(updatedPassword: PasswordEntry): Promise<Pa
 
     await sheets.spreadsheets.values.update({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: `${SHEET_NAME}!A${sheetRowIndex}:F${sheetRowIndex}`,
+        range: `${SHEET_NAME}!A${sheetRowIndex}:G${sheetRowIndex}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
             values: [rowData],

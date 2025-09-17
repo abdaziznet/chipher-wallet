@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
+  Folder,
 } from 'lucide-react';
 import {
   Card,
@@ -36,12 +37,15 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddPasswordDialog } from '@/components/add-password-dialog';
 import { CopyButton } from '@/components/copy-button';
-import type { PasswordEntry } from '@/lib/types';
+import type { PasswordEntry, PasswordCategory } from '@/lib/types';
+import { passwordCategories } from '@/lib/types';
 import { AppIcon } from '@/components/app-icon';
 import { useToast } from '@/hooks/use-toast';
 import { EditPasswordDialog } from '@/components/edit-password-dialog';
@@ -55,6 +59,7 @@ import {
   deletePasswordsAction,
   updatePasswordAction,
 } from './passwords/actions';
+import { Badge } from '@/components/ui/badge';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
@@ -70,6 +75,7 @@ export default function PasswordsPage() {
   const { currentUser } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
+  const [categoryFilter, setCategoryFilter] = React.useState<Set<PasswordCategory>>(new Set());
 
   const decryptPassword = (password: string) => {
     try {
@@ -159,11 +165,25 @@ export default function PasswordsPage() {
     }
   };
 
-  const filteredPasswords = passwords.filter(
-    (p) =>
+  const handleCategoryFilterChange = (category: PasswordCategory) => {
+    const newFilter = new Set(categoryFilter);
+    if (newFilter.has(category)) {
+      newFilter.delete(category);
+    } else {
+      newFilter.add(category);
+    }
+    setCategoryFilter(newFilter);
+    setCurrentPage(1);
+  };
+
+  const filteredPasswords = passwords.filter(p => {
+    const searchTermMatch =
       p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+      p.username.toLowerCase().includes(searchTerm.toLowerCase());
+    const categoryMatch =
+      categoryFilter.size === 0 || categoryFilter.has(p.category);
+    return searchTermMatch && categoryMatch;
+  });
   
   const totalPages = Math.ceil(filteredPasswords.length / PAGE_SIZE);
 
@@ -213,6 +233,29 @@ export default function PasswordsPage() {
           />
         </div>
         <div className="flex items-center gap-2 ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Folder className="mr-2 h-4 w-4" />
+                Category
+                {categoryFilter.size > 0 && <span className="ml-2 rounded-full bg-primary px-2 text-xs text-primary-foreground">{categoryFilter.size}</span>}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Filter by category</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {passwordCategories.map(cat => (
+                <DropdownMenuCheckboxItem
+                  key={cat}
+                  checked={categoryFilter.has(cat)}
+                  onCheckedChange={() => handleCategoryFilterChange(cat)}
+                  className="capitalize"
+                >
+                  {cat}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {selectedIds.size > 0 && (
               <Button variant="destructive" onClick={handleDeleteSelected}>
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -256,6 +299,7 @@ export default function PasswordsPage() {
                 </TableHead>
                 <TableHead>Account</TableHead>
                 <TableHead>Username</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -264,7 +308,7 @@ export default function PasswordsPage() {
             <TableBody>
               {isLoading ? (
                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <RefreshCw className="h-4 w-4 animate-spin" />
                         <span>Loading passwords...</span>
@@ -290,6 +334,9 @@ export default function PasswordsPage() {
                       {password.appName}
                     </TableCell>
                     <TableCell>{password.username}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="capitalize">{password.category}</Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
                         <CopyButton
@@ -330,7 +377,7 @@ export default function PasswordsPage() {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={6}
                     className="h-24 text-center text-muted-foreground"
                   >
                     No passwords found. Add one to get started.
