@@ -35,19 +35,17 @@ export async function checkBreaches(email: string): Promise<BreachCheckOutput> {
   return breachCheckFlow({ email });
 }
 
-const prompt = ai.definePrompt({
-  name: 'breachCheckPrompt',
-  input: { schema: BreachCheckInputSchema },
-  output: { schema: BreachCheckOutputSchema },
-  prompt: `You are a cybersecurity expert specializing in data breach analysis. Your task is to determine if the following email address has been compromised in any publicly known data breaches.
+const prompt = `You are a cybersecurity expert specializing in data breach analysis. Your task is to determine if the following email address has been compromised in any publicly known data breaches.
 
 Email Address: {{{email}}}
 
 Use your knowledge of historical data breaches to identify any incidents where this email might have been exposed. For each breach you find, provide the name of the breached service, the date of the breach, a description, and a list of the data types that were compromised.
 
 If you find no evidence of the email in any known breaches, return an empty array for the 'breaches' field. If you are unable to perform the check, provide a reason in the 'error' field.
-`,
-});
+
+Return the response as a JSON object matching this schema:
+${JSON.stringify(BreachCheckOutputSchema.jsonSchema, null, 2)}
+`;
 
 const breachCheckFlow = ai.defineFlow(
   {
@@ -57,8 +55,22 @@ const breachCheckFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const { output } = await prompt(input);
-      return output || { breaches: [] };
+      const { text } = await ai.generate({
+        prompt,
+        input,
+      });
+
+      const parsed = JSON.parse(text);
+      const result = BreachCheckOutputSchema.safeParse(parsed);
+      if (!result.success) {
+         console.error('Breach check output validation failed:', result.error);
+         return { 
+           breaches: [],
+           error: 'The AI returned an unexpected data format.'
+         };
+      }
+      return result.data;
+
     } catch (error) {
       console.error('Error in breach check flow:', error);
       return { 
