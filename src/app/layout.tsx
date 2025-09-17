@@ -24,7 +24,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 
-function AppLayout({
+function AppContent({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -50,16 +50,9 @@ function AppLayout({
   }, [isLoaded, currentUser, pathname, router]);
 
   const renderLoading = () => (
-     <html lang="en" suppressHydrationWarning>
-      <head>
-        <title>CipherWallet</title>
-      </head>
-      <body className="font-body antialiased" suppressHydrationWarning>
-        <div className="flex h-screen items-center justify-center">
-          {/* You can add a loading spinner here */}
-        </div>
-      </body>
-    </html>
+    <div className="flex h-screen items-center justify-center">
+      {/* You can add a loading spinner here */}
+    </div>
   );
 
   if (!isLoaded || (!currentUser && pathname !== '/login')) {
@@ -68,14 +61,7 @@ function AppLayout({
   
   if (pathname === '/login') {
     return (
-       <html lang="en" suppressHydrationWarning>
-        <head>
-          <title>Login - CipherWallet</title>
-        </head>
-        <body className="font-body antialiased bg-background" suppressHydrationWarning>
-          <main className="flex h-screen items-center justify-center">{children}</main>
-        </body>
-      </html>
+      <main className="flex h-screen items-center justify-center">{children}</main>
     )
   }
 
@@ -84,53 +70,47 @@ function AppLayout({
   );
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <title>CipherWallet</title>
-        <meta name="description" content="A modern and secure password manager." />
-      </head>
-      <body className="font-body antialiased" suppressHydrationWarning>
-        <Toaster />
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarHeader>
-              <div className="flex items-center gap-2 font-headline">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold">CipherWallet</h1>
-              </div>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                {navItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.href}
-                      tooltip={item.label}
-                    >
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarContent>
-          </Sidebar>
-          <SidebarInset>
-            <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-              <SidebarTrigger className="md:hidden" />
-              <div className="flex items-center gap-4 ml-auto">
-                 <ThemeToggle />
-                 <UserNav />
-              </div>
-            </header>
-            <main className="flex-1 p-4 sm:px-6 sm:py-6">{children}</main>
-          </SidebarInset>
-        </SidebarProvider>
-      </body>
-    </html>
+    <>
+      <Toaster />
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader>
+            <div className="flex items-center gap-2 font-headline">
+              <ShieldCheck className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-semibold">CipherWallet</h1>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+            <div className="flex items-center gap-4 ml-auto">
+               <ThemeToggle />
+               <UserNav />
+            </div>
+          </header>
+          <main className="flex-1 p-4 sm:px-6 sm:py-6">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </>
   );
 }
 
@@ -140,15 +120,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <SessionProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AppLayout>{children}</AppLayout>
-      </ThemeProvider>
-    </SessionProvider>
-  )
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>CipherWallet</title>
+        <meta name="description" content="A modern and secure password manager." />
+      </head>
+      <body className="font-body antialiased" suppressHydrationWarning>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <AppContent>{children}</AppContent>
+          </ThemeProvider>
+        </SessionProvider>
+      </body>
+    </html>
+  );
 }
