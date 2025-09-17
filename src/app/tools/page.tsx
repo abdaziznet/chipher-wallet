@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CopyButton } from '@/components/copy-button';
 import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
-import { Lock, Unlock, Key, ArrowRight } from 'lucide-react';
+import { Lock, Unlock, Key, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function ToolsPage() {
   const { currentUser } = useSession();
@@ -23,10 +23,13 @@ export default function ToolsPage() {
   const [encryptInput, setEncryptInput] = React.useState('');
   const [encryptKey, setEncryptKey] = React.useState('');
   const [encryptOutput, setEncryptOutput] = React.useState('');
+  const [showEncryptKey, setShowEncryptKey] = React.useState(false);
 
   const [decryptInput, setDecryptInput] = React.useState('');
   const [decryptKey, setDecryptKey] = React.useState('');
   const [decryptOutput, setDecryptOutput] = React.useState('');
+  const [showDecryptKey, setShowDecryptKey] = React.useState(false);
+
 
   React.useEffect(() => {
     if (currentUser?.role !== 'admin') {
@@ -113,12 +116,22 @@ export default function ToolsPage() {
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="encrypt-key"
-                      type="password"
+                      type={showEncryptKey ? 'text' : 'password'}
                       value={encryptKey}
                       onChange={(e) => setEncryptKey(e.target.value)}
                       placeholder="Your secret password"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowEncryptKey(prev => !prev)}
+                    >
+                      {showEncryptKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">{showEncryptKey ? 'Hide password' : 'Show password'}</span>
+                    </Button>
                 </div>
               </div>
               <Button onClick={handleEncrypt} className="w-full">
@@ -168,12 +181,22 @@ export default function ToolsPage() {
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="decrypt-key"
-                      type="password"
+                      type={showDecryptKey ? 'text' : 'password'}
                       value={decryptKey}
                       onChange={(e) => setDecryptKey(e.target.value)}
                       placeholder="The secret password used to encrypt"
-                      className="pl-10"
+                      className="pl-10 pr-10"
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowDecryptKey(prev => !prev)}
+                    >
+                      {showDecryptKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="sr-only">{showDecryptKey ? 'Hide password' : 'Show password'}</span>
+                    </Button>
                 </div>
               </div>
               <Button onClick={handleDecrypt} className="w-full">
