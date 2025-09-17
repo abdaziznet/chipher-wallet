@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useActionState } from 'react';
@@ -16,16 +17,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
 import { CopyButton } from './copy-button';
 import { Bot, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
   length: z.coerce.number().min(8).max(64),
-  includeUppercase: z.coerce.boolean(),
-  includeLowercase: z.coerce.boolean(),
-  includeNumbers: z.coerce.boolean(),
-  includeSymbols: z.coerce.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,10 +38,6 @@ export function PasswordGeneratorForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       length: 16,
-      includeUppercase: true,
-      includeLowercase: true,
-      includeNumbers: true,
-      includeSymbols: true,
     },
   });
 
@@ -94,81 +86,6 @@ export function PasswordGeneratorForm() {
               </FormItem>
             )}
           />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="includeUppercase"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Uppercase</FormLabel>
-                    <FormDescription>A-Z</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="includeLowercase"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Lowercase</FormLabel>
-                    <FormDescription>a-z</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="includeNumbers"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Numbers</FormLabel>
-                    <FormDescription>0-9</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="includeSymbols"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Symbols</FormLabel>
-                    <FormDescription>!@#$%^</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
         </div>
 
         <Button type="submit" size="lg" className="w-full">
