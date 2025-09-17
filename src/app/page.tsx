@@ -2,8 +2,8 @@
 'use client';
 
 import * as React from 'react';
-import * as CryptoJS from 'crypto-js';
 import * as yaml from 'js-yaml';
+import * as CryptoJS from 'crypto-js';
 import {
   MoreHorizontal,
   PlusCircle,
@@ -14,6 +14,7 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Card,
@@ -50,8 +51,15 @@ import { EditPasswordDialog } from '@/components/edit-password-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
+import { getPasswords, deletePassword, deletePasswords, addPassword, updatePassword } from '@/ai/flows/passwords-flow';
+import {
+  addPasswordAction,
+  deletePasswordAction,
+  deletePasswordsAction,
+  updatePasswordAction,
+  importPasswordsAction
+} from './passwords/actions';
 
-const LOCAL_STORAGE_KEY = 'cipherwallet-passwords';
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 
 export default function PasswordsPage() {
@@ -64,84 +72,83 @@ export default function PasswordsPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const { currentUser } = useSession();
   const router = useRouter();
+  const [isLoading, setIsLoading] = React.useState(true);
 
+  const fetchPasswords = React.useCallback(async () => {
+    if (!currentUser) return;
+    setIsLoading(true);
+    try {
+      const userPasswords = await getPasswords(currentUser.id);
+      setPasswords(userPasswords);
+    } catch (error) {
+      console.error('Failed to load passwords', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not load saved passwords from the cloud.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentUser, toast]);
 
   React.useEffect(() => {
     if (!currentUser) {
       router.push('/login');
-      return;
+    } else {
+      fetchPasswords();
     }
-    try {
-      const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedPasswords) {
-        const allPasswords: PasswordEntry[] = JSON.parse(savedPasswords);
-        setPasswords(allPasswords.filter(p => p.userId === currentUser.id));
-      }
-    } catch (error) {
-      console.error('Failed to load passwords from localStorage', error);
+  }, [currentUser, router, fetchPasswords]);
+
+  const handleAddPassword = async (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => {
+    if (!currentUser) return;
+    const result = await addPasswordAction(newPassword);
+    if (result.error) {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    } else {
+      await fetchPasswords();
+      toast({ title: 'Success', description: 'Password added successfully.' });
+    }
+  };
+
+  const handleEditPassword = async (updatedPassword: PasswordEntry) => {
+    const result = await updatePasswordAction(updatedPassword);
+    if (result.error) {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    } else {
+      await fetchPasswords();
+      setPasswordToEdit(null);
+      toast({ title: 'Success', description: 'Password updated successfully.' });
+    }
+  };
+
+  const handleDeletePassword = async (id: string) => {
+    const result = await deletePasswordAction(id);
+     if (result.error) {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    } else {
+      await fetchPasswords();
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not load saved passwords.',
+        title: 'Password Deleted',
+        description: 'The password has been successfully removed.',
       });
     }
-  }, [toast, currentUser, router]);
+  };
 
-  const updatePasswords = (newPasswords: PasswordEntry[]) => {
-    if (!currentUser) return;
-    try {
-      const savedPasswords = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const allPasswords: PasswordEntry[] = savedPasswords ? JSON.parse(savedPasswords) : [];
-      const otherUserPasswords = allPasswords.filter(p => p.userId !== currentUser.id);
-      const updatedAllPasswords = [...otherUserPasswords, ...newPasswords];
-      
-      setPasswords(newPasswords);
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedAllPasswords));
-    } catch (error) {
-      console.error('Failed to save passwords to localStorage', error);
+  const handleDeleteSelected = async () => {
+    const ids = Array.from(selectedIds);
+    const result = await deletePasswordsAction(ids);
+    if (result.error) {
+      toast({ variant: 'destructive', title: 'Error', description: result.error });
+    } else {
+      await fetchPasswords();
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not save passwords.',
+        title: `${selectedIds.size} Passwords Deleted`,
+        description: 'The selected passwords have been removed.',
       });
+      setSelectedIds(new Set());
     }
   };
-
-  const handleAddPassword = (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => {
-    if (!currentUser) return;
-    const updatedPasswords = [
-      ...passwords,
-      { ...newPassword, id: `pw_${Date.now()}`, userId: currentUser.id },
-    ];
-    updatePasswords(updatedPasswords);
-  };
-
-  const handleEditPassword = (updatedPassword: PasswordEntry) => {
-    const updatedPasswords = passwords.map((p) =>
-      p.id === updatedPassword.id ? updatedPassword : p
-    );
-    updatePasswords(updatedPasswords);
-    setPasswordToEdit(null);
-  };
-
-  const handleDeletePassword = (id: string) => {
-    const updatedPasswords = passwords.filter((p) => p.id !== id);
-    updatePasswords(updatedPasswords);
-    toast({
-      title: 'Password Deleted',
-      description: 'The password has been successfully removed.',
-    });
-  };
-
-  const handleDeleteSelected = () => {
-    const updatedPasswords = passwords.filter((p) => !selectedIds.has(p.id));
-    updatePasswords(updatedPasswords);
-    toast({
-      title: `${selectedIds.size} Passwords Deleted`,
-      description: 'The selected passwords have been removed.',
-    });
-    setSelectedIds(new Set());
-  }
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -152,97 +159,22 @@ export default function PasswordsPage() {
     if (!file || !currentUser) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const text = e.target?.result as string;
-      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const result = await importPasswordsAction({ fileContent: text, fileName: file.name, userId: currentUser.id });
       
-      try {
-        let importedPasswords: Partial<PasswordEntry>[] = [];
-
-        if (fileExtension === 'json') {
-          importedPasswords = JSON.parse(text);
-        } else if (fileExtension === 'yaml' || fileExtension === 'yml') {
-          importedPasswords = yaml.load(text) as Partial<PasswordEntry>[];
-        } else if (fileExtension === 'csv') {
-          const lines = text.split('\n').filter(line => line.trim() !== '');
-          const headerLine = lines.shift();
-          if (!headerLine) throw new Error('CSV file is empty or has no header.');
-          
-          const header = headerLine.split(',').map(h => h.trim().replace(/"/g, ''));
-          
-          importedPasswords = lines.map((line) => {
-            const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-            const entryData: {[key: string]: string} = {};
-            header.forEach((h, i) => {
-              entryData[h] = values[i] || '';
-            });
-
-            return entryData as Partial<PasswordEntry>;
-          });
-        } else {
-          throw new Error('Unsupported file format. Please use CSV, JSON, or YAML.');
-        }
-
-        const firstPassword = importedPasswords.find(p => p.password)?.password;
-        const isLikelyEncrypted = firstPassword && (firstPassword.startsWith('U2FsdGVk') || firstPassword.length > 50);
-
-        let decryptionKey = '';
-        if (isLikelyEncrypted) {
-          decryptionKey = prompt('It looks like this file is encrypted. Please enter your encryption key to decrypt the passwords.') || '';
-        }
-        
-        const newPasswords: PasswordEntry[] = [];
-        const updatedPasswordsList = [...passwords];
-
-        importedPasswords.forEach((entry, index) => {
-          if (!entry.appName || !entry.username || !entry.password) {
-            console.warn(`Skipping invalid entry at index ${index}`);
-            return;
-          }
-
-          let decryptedPassword = entry.password;
-          if (decryptionKey) {
-            try {
-              const bytes = CryptoJS.AES.decrypt(entry.password, decryptionKey);
-              decryptedPassword = bytes.toString(CryptoJS.enc.Utf8);
-              if (!decryptedPassword) {
-                  throw new Error(`Decryption failed for an entry. Please check your key.`);
-              }
-            } catch (err) {
-              throw new Error(`Decryption failed for entry "${entry.appName}". Please check your key.`);
-            }
-          }
-          
-          const fullEntry: PasswordEntry = {
-            id: entry.id || `pw_import_${Date.now()}_${index}`,
-            appName: entry.appName,
-            username: entry.username,
-            password: decryptedPassword,
-            website: entry.website || '',
-            userId: currentUser.id,
-          };
-
-          const existingIndex = updatedPasswordsList.findIndex(p => p.id === fullEntry.id);
-          if (existingIndex > -1) {
-            updatedPasswordsList[existingIndex] = fullEntry;
-          } else {
-            newPasswords.push(fullEntry);
-          }
-        });
-        
-        updatePasswords([...updatedPasswordsList, ...newPasswords]);
-
-        toast({
-          title: 'Import Successful',
-          description: `${importedPasswords.length} passwords have been processed.`,
-        });
-      } catch (error) {
-        console.error('Failed to import file:', error);
+      if (result.error) {
         toast({
           variant: 'destructive',
           title: 'Import Failed',
-          description: error instanceof Error ? error.message : 'Could not parse the file. Please check the format and content.',
+          description: result.error,
         });
+      } else {
+        toast({
+          title: 'Import Successful',
+          description: result.message,
+        });
+        await fetchPasswords();
       }
     };
     reader.readAsText(file);
@@ -261,7 +193,6 @@ export default function PasswordsPage() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
-
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -336,11 +267,16 @@ export default function PasswordsPage() {
         </div>
       </div>
       <Card>
-        <CardHeader>
-          <CardTitle>All Passwords</CardTitle>
-          <CardDescription>
-            A secure list of all your saved credentials.
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>All Passwords</CardTitle>
+            <CardDescription>
+              A secure list of all your saved credentials.
+            </CardDescription>
+          </div>
+          <Button variant="ghost" size="icon" onClick={fetchPasswords} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -365,7 +301,16 @@ export default function PasswordsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedPasswords.length > 0 ? (
+              {isLoading ? (
+                 <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <span>Loading passwords...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+              ) : paginatedPasswords.length > 0 ? (
                 paginatedPasswords.map((password) => (
                   <TableRow key={password.id} data-state={selectedIds.has(password.id) && "selected"}>
                     <TableCell>
@@ -472,3 +417,4 @@ export default function PasswordsPage() {
     </>
   );
 }
+

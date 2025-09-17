@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [error, setError] = React.useState('');
   const router = useRouter();
 
+  //password akan di pndah menggunakan google sheet
   React.useEffect(() => {
     if (currentUser) {
       router.push('/');
