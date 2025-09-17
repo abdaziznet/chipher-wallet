@@ -4,8 +4,11 @@ import type { PasswordEntry } from '@/lib/types';
 
 const SHEET_NAME = 'Passwords'; // Name of the sheet/tab in your Google Sheet document
 
-const getWriteAuth = () => {
+const getAuth = () => {
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  if (!process.env.GOOGLE_CLIENT_EMAIL || !privateKey) {
+    throw new Error('Google Sheets API credentials (client email or private key) are not set in .env file.');
+  }
   return new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -15,15 +18,8 @@ const getWriteAuth = () => {
   });
 };
 
-const getReadSheetsApi = () => {
-  return google.sheets({
-    version: 'v4',
-    auth: process.env.GOOGLE_API_KEY,
-  });
-};
-
-const getWriteSheetsApi = () => {
-  const auth = getWriteAuth();
+const getSheetsApi = () => {
+  const auth = getAuth();
   return google.sheets({ version: 'v4', auth });
 };
 
@@ -47,7 +43,7 @@ const mapPasswordEntryToRow = (entry: Partial<PasswordEntry>): any[] => [
 
 export async function getPasswords(userId: string): Promise<PasswordEntry[]> {
   try {
-    const sheets = getReadSheetsApi();
+    const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: `${SHEET_NAME}!A:F`,
@@ -73,7 +69,7 @@ export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promi
   const row = mapPasswordEntryToRow(entry);
 
   try {
-    const sheets = getWriteSheetsApi();
+    const sheets = getSheetsApi();
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: `${SHEET_NAME}!A:F`,
@@ -91,7 +87,7 @@ export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promi
 
 export async function updatePassword(updatedPassword: PasswordEntry): Promise<PasswordEntry> {
   try {
-    const sheets = getWriteSheetsApi();
+    const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         range: `${SHEET_NAME}!A:A`, // Only need the ID column to find the row index
@@ -124,7 +120,7 @@ export async function updatePassword(updatedPassword: PasswordEntry): Promise<Pa
 
 export async function deletePassword(id: string): Promise<void> {
   try {
-    const sheets = getWriteSheetsApi();
+    const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         range: `${SHEET_NAME}!A:A`,
@@ -173,7 +169,7 @@ export async function deletePassword(id: string): Promise<void> {
 export async function deletePasswords(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   try {
-    const sheets = getWriteSheetsApi();
+    const sheets = getSheetsApi();
     const response = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
         range: `${SHEET_NAME}!A:A`,
