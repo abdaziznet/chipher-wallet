@@ -16,7 +16,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Settings, CreditCard, LifeBuoy, LogOut } from 'lucide-react';
+import { Settings, CreditCard, LifeBuoy, LogOut } from 'lucide-react';
 import { useSession } from '@/contexts/session-context';
 import Link from 'next/link';
 import { auth } from '@/lib/firebase';
@@ -46,7 +46,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={`https://picsum.photos/seed/${currentUser.id}/40/40`} data-ai-hint="person" alt={currentUser.name} />
+            <AvatarImage src={currentUser.photoURL || ''} alt={currentUser.name} />
             <AvatarFallback>{getInitials(currentUser.name)}</AvatarFallback>
           </Avatar>
         </Button>

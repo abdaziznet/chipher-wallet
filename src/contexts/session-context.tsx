@@ -31,6 +31,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || 'User',
           email: firebaseUser.email || '',
+          photoURL: firebaseUser.photoURL,
           role: role,
         });
       } else {
