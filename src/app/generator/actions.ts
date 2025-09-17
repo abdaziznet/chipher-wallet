@@ -2,6 +2,7 @@
 'use server';
 
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 const formSchema = z.object({
   length: z.coerce.number().min(8).max(64),
@@ -33,42 +34,53 @@ function createStrongPassword(options: z.infer<typeof formSchema>): string {
 
   let charPool = '';
   const requiredChars: string[] = [];
-
+  
   if (includeLowercase) {
     charPool += lowerCaseChars;
-    requiredChars.push(lowerCaseChars[Math.floor(Math.random() * lowerCaseChars.length)]);
+    const bytes = randomBytes(1);
+    requiredChars.push(lowerCaseChars[bytes[0] % lowerCaseChars.length]);
   }
   if (includeUppercase) {
     charPool += upperCaseChars;
-    requiredChars.push(upperCaseChars[Math.floor(Math.random() * upperCaseChars.length)]);
+    const bytes = randomBytes(1);
+    requiredChars.push(upperCaseChars[bytes[0] % upperCaseChars.length]);
   }
   if (includeNumbers) {
     charPool += numberChars;
-    requiredChars.push(numberChars[Math.floor(Math.random() * numberChars.length)]);
+    const bytes = randomBytes(1);
+    requiredChars.push(numberChars[bytes[0] % numberChars.length]);
   }
   if (includeSymbols) {
     charPool += symbolChars;
-    requiredChars.push(symbolChars[Math.floor(Math.random() * symbolChars.length)]);
+    const bytes = randomBytes(1);
+    requiredChars.push(symbolChars[bytes[0] % symbolChars.length]);
   }
+
 
   if (charPool === '') {
     return ''; // Or throw an error if no character types are selected
   }
-
-  let passwordArray = [...requiredChars];
   
-  for (let i = requiredChars.length; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * charPool.length);
-    passwordArray.push(charPool[randomIndex]);
+  let passwordArray = [...requiredChars];
+  const remainingLength = length - requiredChars.length;
+  
+  if (remainingLength > 0) {
+    const randomValues = randomBytes(remainingLength);
+    for (let i = 0; i < remainingLength; i++) {
+        const randomIndex = randomValues[i] % charPool.length;
+        passwordArray.push(charPool[randomIndex]);
+    }
   }
 
   // Shuffle the array to ensure random placement of required characters
+  // Fisher-Yates shuffle algorithm
+  const shuffleBytes = randomBytes(passwordArray.length);
   for (let i = passwordArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = shuffleBytes[i] % (i + 1);
     [passwordArray[i], passwordArray[j]] = [passwordArray[j], passwordArray[i]];
   }
-
-  return passwordArray.join('');
+  
+  return passwordArray.slice(0, length).join('');
 }
 
 
