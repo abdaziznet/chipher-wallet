@@ -58,9 +58,10 @@ export async function getPasswords(userId: string): Promise<PasswordEntry[]> {
     return rows.slice(1)
       .map(mapRowToPasswordEntry)
       .filter(p => p.userId === userId);
-  } catch (error) {
-    console.error('Google Sheets API error (getPasswords):', error);
-    throw new Error('Failed to fetch passwords from Google Sheets.');
+  } catch (error: any) {
+    console.error('Google Sheets API error (getPasswords):', error.message);
+    // Throw a more specific error to help with debugging
+    throw new Error(`Failed to fetch passwords from Google Sheets: ${error.message}`);
   }
 }
 
@@ -79,9 +80,9 @@ export async function addPassword(newPassword: Omit<PasswordEntry, 'id'>): Promi
       },
     });
     return entry;
-  } catch (error) {
-    console.error('Google Sheets API error (addPassword):', error);
-    throw new Error('Failed to add password to Google Sheets.');
+  } catch (error: any) {
+    console.error('Google Sheets API error (addPassword):', error.message);
+    throw new Error(`Failed to add password to Google Sheets: ${error.message}`);
   }
 }
 
@@ -112,9 +113,9 @@ export async function updatePassword(updatedPassword: PasswordEntry): Promise<Pa
         },
     });
     return updatedPassword;
-  } catch (error) {
-    console.error('Google Sheets API error (updatePassword):', error);
-    throw new Error('Failed to update password in Google Sheets.');
+  } catch (error: any) {
+    console.error('Google Sheets API error (updatePassword):', error.message);
+    throw new Error(`Failed to update password in Google Sheets: ${error.message}`);
   }
 }
 
@@ -160,9 +161,9 @@ export async function deletePassword(id: string): Promise<void> {
         }
     });
 
-  } catch (error) {
-    console.error('Google Sheets API error (deletePassword):', error);
-    throw new Error('Failed to delete password from Google Sheets.');
+  } catch (error: any) {
+    console.error('Google Sheets API error (deletePassword):', error.message);
+    throw new Error(`Failed to delete password from Google Sheets: ${error.message}`);
   }
 }
 
@@ -213,8 +214,8 @@ export async function deletePasswords(ids: string[]): Promise<void> {
         }
     });
 
-  } catch (error) {
-    console.error('Google Sheets API error (deletePasswords):', error);
-    throw new Error('Failed to delete passwords from Google Sheets.');
+  } catch (error: any) {
+    console.error('Google Sheets API error (deletePasswords):', error.message);
+    throw new Error(`Failed to delete passwords from Google Sheets: ${error.message}`);
   }
 }
