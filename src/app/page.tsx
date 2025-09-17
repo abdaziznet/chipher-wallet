@@ -60,6 +60,7 @@ import {
   updatePasswordAction,
 } from './passwords/actions';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
@@ -212,6 +213,22 @@ export default function PasswordsPage() {
 
   const areAllFilteredSelected =
     filteredPasswords.length > 0 && selectedIds.size === filteredPasswords.length && filteredPasswords.every(p => selectedIds.has(p.id));
+  
+  const getCategoryBadgeColor = (category: PasswordCategory) => {
+    switch (category) {
+      case 'banking':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      case 'email':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'social media':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'game':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+    }
+  };
+
 
   if (!currentUser) {
     return null;
@@ -335,7 +352,7 @@ export default function PasswordsPage() {
                     </TableCell>
                     <TableCell>{password.username}</TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="capitalize">{password.category}</Badge>
+                      <Badge variant="outline" className={cn("capitalize border-transparent", getCategoryBadgeColor(password.category))}>{password.category}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
@@ -425,3 +442,5 @@ export default function PasswordsPage() {
     </>
   );
 }
+
+    
