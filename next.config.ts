@@ -40,7 +40,6 @@ const nextConfig: NextConfig = {
   devIndicators: {
     allowedDevOrigins: [
       '*.cluster-a6zx3cwnb5hnuwbgyxmofxpkfe.cloudworkstations.dev',
-      'chiper-wallet.cluster-a6zx3cwnb5hnuwbgyxmofxpkfe.cloudworkstations.dev'
     ],
   },
   env: {
