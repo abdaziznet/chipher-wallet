@@ -36,26 +36,26 @@ function createStrongPassword({
   if (includeSymbols) chars += symbols;
 
   let password = '';
-  const passwordChars = new Set<string>();
-  
-  // Ensure the password includes at least one of each required character type
+  const requiredChars: string[] = [
+    lower[crypto.randomInt(lower.length)],
+    upper[crypto.randomInt(upper.length)],
+  ];
+
   if (includeNumbers) {
-    passwordChars.add(numbers[crypto.randomInt(numbers.length)]);
+    requiredChars.push(numbers[crypto.randomInt(numbers.length)]);
   }
   if (includeSymbols) {
-    passwordChars.add(symbols[crypto.randomInt(symbols.length)]);
+    requiredChars.push(symbols[crypto.randomInt(symbols.length)]);
   }
-   passwordChars.add(lower[crypto.randomInt(lower.length)]);
-   passwordChars.add(upper[crypto.randomInt(upper.length)]);
 
-
-  while (passwordChars.size < length) {
+  // Fill the rest of the password length with random characters
+  for (let i = requiredChars.length; i < length; i++) {
     const randomIndex = crypto.randomInt(chars.length);
-    passwordChars.add(chars[randomIndex]);
+    requiredChars.push(chars[randomIndex]);
   }
   
-  // Convert set to array and shuffle it
-  const shuffledChars = Array.from(passwordChars);
+  // Shuffle the array to ensure randomness
+  const shuffledChars = requiredChars.slice();
   for (let i = shuffledChars.length - 1; i > 0; i--) {
     const j = crypto.randomInt(i + 1);
     [shuffledChars[i], shuffledChars[j]] = [shuffledChars[j], shuffledChars[i]];
