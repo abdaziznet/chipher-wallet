@@ -24,8 +24,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https'
-        ,
+        protocol: 'https',
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
@@ -38,34 +37,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  devIndicators: {
-    allowedDevOrigins: [
-      '*.cluster-a6zx3cwnb5hnuwbgyxmofxpkfe.cloudworkstations.dev',
-    ],
-  },
   env: {
     NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY: process.env.EXPORT_ENCRYPTION_KEY,
-  },
-   async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization, x-user-id',
-          },
-        ],
-      },
-    ];
   },
 };
 
