@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Github, Film, ShoppingCart, Globe, X, Bot, Facebook, Linkedin, Slack } from 'lucide-react';
+import { Github, Figma,Twitch, Film, Gitlab, ShoppingCart, Globe, Youtube, Instagram, X, Bot, Facebook, Linkedin, Slack } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
 interface AppIconProps extends LucideProps {
@@ -18,11 +18,16 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
   facebook: Facebook,
   linkedin: Linkedin,
   slack: Slack,
+  instagram: Instagram,
+  youtube: Youtube,
+  gitlab: Gitlab,
+  figma: Figma,
+  twitch: Twitch
 };
 
 export function AppIcon({ appName, ...props }: AppIconProps) {
   const lowerCaseAppName = appName.toLowerCase();
-  
+
   for (const keyword in iconMap) {
     if (lowerCaseAppName.includes(keyword)) {
       const IconComponent = iconMap[keyword];
@@ -37,6 +42,6 @@ export function AppIcon({ appName, ...props }: AppIconProps) {
       <span className="font-bold text-lg text-muted-foreground">{initial}</span>
     );
   }
-  
+
   return <Globe {...props} />;
 }

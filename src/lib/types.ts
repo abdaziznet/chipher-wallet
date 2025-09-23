@@ -8,7 +8,7 @@ export type User = {
   password?: string; // Encrypted password
 };
 
-export const passwordCategories = ['banking', 'email', 'social media', 'game', 'other'] as const;
+export const passwordCategories = ['banking', 'email', 'social media', 'game', 'productivity', 'other'] as const;
 export type PasswordCategory = (typeof passwordCategories)[number];
 
 
@@ -21,4 +21,3 @@ export type PasswordEntry = {
   website?: string;
   category: PasswordCategory;
 };
-
