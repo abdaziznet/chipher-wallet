@@ -106,7 +106,7 @@ export function EditPasswordDialog({
                         className="col-span-3"
                     />
                 </div>
-                 <Button onClick={handleDecryptForEditing}>Decrypt to Edit</Button>
+                 <Button onClick={handleDecryptForEditing}>Edit</Button>
             </div>
         ) : (
           <form ref={formRef} onSubmit={handleSubmit} id="edit-password-form">
