@@ -429,9 +429,6 @@ export default function PasswordsPage() {
                               <KeyRound className="h-4 w-4" />
                            </Button>
                         </DecryptAndCopyDialog>
-                        <Button variant="ghost" size="icon" aria-label="Edit password" onClick={() => setPasswordToEdit(password)}>
-                           <Edit className="h-4 w-4" />
-                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -445,6 +442,12 @@ export default function PasswordsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => setPasswordToEdit(password)}
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleDeletePassword(password.id)}
@@ -524,3 +527,4 @@ export default function PasswordsPage() {
     </>
   );
 }
+
