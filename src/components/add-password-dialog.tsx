@@ -88,24 +88,24 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="password" className="text-right">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                className="col-span-3"
-                required
-              />
-            </div>
-             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="secretKey" className="text-right">
                 Secret Key
               </Label>
               <Input
                 id="secretKey"
                 name="secretKey"
+                type="password"
+                className="col-span-3"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
                 type="password"
                 className="col-span-3"
                 required
