@@ -265,11 +265,15 @@ export default function PasswordsPage() {
   }, [paginatedPasswords.length, currentPage, totalPages]);
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(new Set(filteredPasswords.map((p) => p.id)));
-    } else {
-      setSelectedIds(new Set());
-    }
+    const newSelectedIds = new Set(selectedIds);
+    paginatedPasswords.forEach(p => {
+      if (checked) {
+        newSelectedIds.add(p.id);
+      } else {
+        newSelectedIds.delete(p.id);
+      }
+    });
+    setSelectedIds(newSelectedIds);
   };
 
   const handleSelectOne = (id: string, checked: boolean) => {
@@ -282,8 +286,8 @@ export default function PasswordsPage() {
     setSelectedIds(newSelectedIds);
   };
 
-  const areAllFilteredSelected =
-    filteredPasswords.length > 0 && selectedIds.size === filteredPasswords.length && filteredPasswords.every(p => selectedIds.has(p.id));
+  const areAllOnPageSelected =
+    paginatedPasswords.length > 0 && paginatedPasswords.every(p => selectedIds.has(p.id));
   
   const getCategoryBadgeColor = (category: PasswordCategory) => {
     switch (category) {
@@ -376,10 +380,10 @@ export default function PasswordsPage() {
               <TableRow>
                  <TableHead className="w-[40px]">
                   <Checkbox
-                    checked={areAllFilteredSelected}
+                    checked={areAllOnPageSelected}
                     onCheckedChange={handleSelectAll}
                     aria-label="Select all"
-                    disabled={filteredPasswords.length === 0}
+                    disabled={paginatedPasswords.length === 0}
                   />
                 </TableHead>
                 <TableHead className="hidden w-[100px] sm:table-cell">
