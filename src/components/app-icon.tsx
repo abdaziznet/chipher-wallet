@@ -5,32 +5,26 @@ interface AppIconProps extends LucideProps {
   appName: string;
 }
 
+const iconMap: Record<string, React.ComponentType<LucideProps>> = {
+  github: Github,
+  twitter: X,
+  x: X,
+  netflix: Film,
+  amazon: ShoppingCart,
+  google: Bot,
+  facebook: Facebook,
+  linkedin: Linkedin,
+  slack: Slack,
+};
+
 export function AppIcon({ appName, ...props }: AppIconProps) {
   const lowerCaseAppName = appName.toLowerCase();
-
-  if (lowerCaseAppName.includes('github')) {
-    return <Github {...props} />;
-  }
-  if (lowerCaseAppName.includes('twitter') || lowerCaseAppName.includes('x')) {
-    return <X {...props} />;
-  }
-  if (lowerCaseAppName.includes('netflix')) {
-    return <Film {...props} />;
-  }
-  if (lowerCaseAppName.includes('amazon')) {
-    return <ShoppingCart {...props} />;
-  }
-  if (lowerCaseAppName.includes('google')) {
-    return <Bot {...props} />;
-  }
-  if (lowerCaseAppName.includes('facebook')) {
-    return <Facebook {...props} />;
-  }
-  if (lowerCaseAppName.includes('linkedin')) {
-    return <Linkedin {...props} />;
-  }
-  if (lowerCaseAppName.includes('slack')) {
-    return <Slack {...props} />;
+  
+  for (const keyword in iconMap) {
+    if (lowerCaseAppName.includes(keyword)) {
+      const IconComponent = iconMap[keyword];
+      return <IconComponent {...props} />;
+    }
   }
   
   return <Globe {...props} />;
