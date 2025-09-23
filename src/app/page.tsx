@@ -14,6 +14,7 @@ import {
   ChevronRight,
   RefreshCw,
   Folder,
+  ArrowUpDown,
 } from 'lucide-react';
 import {
   Card,
@@ -88,6 +89,8 @@ export default function PasswordsPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [categoryFilter, setCategoryFilter] = React.useState<Set<PasswordCategory>>(new Set());
   const [deleteTarget, setDeleteTarget] = React.useState<string | string[] | null>(null);
+  const [sortConfig, setSortConfig] = React.useState<{ key: keyof PasswordEntry; direction: 'ascending' | 'descending' }>({ key: 'id', direction: 'descending' });
+
 
   const decryptPassword = (password: string) => {
     try {
@@ -206,7 +209,31 @@ export default function PasswordsPage() {
     setCurrentPage(1);
   };
 
-  const filteredPasswords = passwords.filter(p => {
+  const requestSort = (key: keyof PasswordEntry) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+  
+  const sortedPasswords = React.useMemo(() => {
+    let sortableItems = [...passwords];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [passwords, sortConfig]);
+
+  const filteredPasswords = sortedPasswords.filter(p => {
     const searchTermMatch =
       p.appName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.username.toLowerCase().includes(searchTerm.toLowerCase());
@@ -350,7 +377,12 @@ export default function PasswordsPage() {
                 <TableHead className="hidden w-[100px] sm:table-cell">
                   <span className="sr-only">Icon</span>
                 </TableHead>
-                <TableHead>Account</TableHead>
+                <TableHead>
+                  <Button variant="ghost" onClick={() => requestSort('appName')}>
+                    Account
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead>Username</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>
