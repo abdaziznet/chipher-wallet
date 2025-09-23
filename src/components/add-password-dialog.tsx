@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { passwordCategories } from '@/lib/types';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface AddPasswordDialogProps {
   children: React.ReactNode;
@@ -33,6 +34,9 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
   const [open, setOpen] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [category, setCategory] = React.useState<PasswordCategory>('other');
+  const [showSecretKey, setShowSecretKey] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,10 +53,20 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
     setOpen(false);
     formRef.current?.reset();
     setCategory('other');
+    setShowSecretKey(false);
+    setShowPassword(false);
   };
 
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setShowSecretKey(false);
+      setShowPassword(false);
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -91,25 +105,49 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
               <Label htmlFor="secretKey" className="text-right">
                 Secret Key
               </Label>
-              <Input
-                id="secretKey"
-                name="secretKey"
-                type="password"
-                className="col-span-3"
-                required
-              />
+              <div className="col-span-3 relative">
+                <Input
+                  id="secretKey"
+                  name="secretKey"
+                  type={showSecretKey ? 'text' : 'password'}
+                  className="pr-10"
+                  required
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowSecretKey(prev => !prev)}
+                  >
+                    {showSecretKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span className="sr-only">{showSecretKey ? 'Hide secret key' : 'Show secret key'}</span>
+                 </Button>
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="password" className="text-right">
                 Password
               </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                className="col-span-3"
-                required
-              />
+               <div className="col-span-3 relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="pr-10"
+                  required
+                />
+                 <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(prev => !prev)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span className="sr-only">{showPassword ? 'Hide password' : 'Show password'}</span>
+                 </Button>
+              </div>
             </div>
              <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="website" className="text-right">
