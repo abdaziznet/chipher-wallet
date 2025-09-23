@@ -76,6 +76,14 @@ import { cn } from '@/lib/utils';
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
+function toTitleCase(str: string) {
+  if (!str) {
+    return '';
+  }
+  return str.replace(/\w\S*/g, function(txt) {
+    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+  });
+}
 
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -416,7 +424,7 @@ export default function PasswordsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {password.appName}
+                      {toTitleCase(password.appName)}
                     </TableCell>
                     <TableCell>{password.username}</TableCell>
                     <TableCell>
@@ -526,6 +534,3 @@ export default function PasswordsPage() {
     </>
   );
 }
-
-    
-    
