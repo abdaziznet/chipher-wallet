@@ -124,6 +124,7 @@ export default function RootLayout({
       <head>
         <title>CipherWallet</title>
         <meta name="description" content="A modern and secure password manager." />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <SessionProvider>
