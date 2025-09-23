@@ -16,7 +16,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { CopyButton } from './copy-button';
 
 interface DecryptAndCopyDialogProps {
   children: React.ReactNode;
@@ -26,10 +25,9 @@ interface DecryptAndCopyDialogProps {
 export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAndCopyDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [secretKey, setSecretKey] = React.useState('');
-  const [decryptedPassword, setDecryptedPassword] = React.useState('');
   const { toast } = useToast();
 
-  const handleDecrypt = () => {
+  const handleCopy = async () => {
     if (!encryptedPassword || !secretKey) {
       toast({ variant: 'destructive', title: 'Error', description: 'Secret key is required.' });
       return;
@@ -43,11 +41,11 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
         throw new Error('Decryption failed. Check your secret key.');
       }
 
-      setDecryptedPassword(decrypted);
-      toast({ title: 'Success', description: 'Password decrypted.' });
+      await navigator.clipboard.writeText(decrypted);
+      toast({ title: 'Success', description: 'Password copied to clipboard.' });
+      setOpen(false); // Close dialog on success
 
     } catch (e) {
-      setDecryptedPassword('');
       toast({ variant: 'destructive', title: 'Decryption Failed', description: 'Could not decrypt the password. Please check your secret key.' });
     }
   };
@@ -57,7 +55,6 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
     if (!isOpen) {
       // Reset state when closing
       setSecretKey('');
-      setDecryptedPassword('');
     }
   }
 
@@ -66,9 +63,9 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Decrypt and Copy Password</DialogTitle>
+          <DialogTitle>Copy Password</DialogTitle>
           <DialogDescription>
-            Enter the secret key to decrypt the password.
+            Enter the secret key to decrypt and copy the password.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -86,29 +83,9 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
               required
             />
           </div>
-          {decryptedPassword && (
-             <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="decryptedPassword" className="text-right">
-                    Decrypted
-                </Label>
-                <div className="col-span-3 relative">
-                     <Input
-                        id="decryptedPassword"
-                        name="decryptedPassword"
-                        type="text"
-                        value={decryptedPassword}
-                        readOnly
-                        className="pr-10"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                        <CopyButton valueToCopy={decryptedPassword} />
-                    </div>
-                </div>
-            </div>
-          )}
         </div>
         <DialogFooter>
-          <Button onClick={handleDecrypt}>Decrypt</Button>
+          <Button onClick={handleCopy}>Copy</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
