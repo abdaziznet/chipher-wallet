@@ -301,8 +301,8 @@ export default function PasswordsPage() {
 
   return (
     <>
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1">
+      <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search passwords..."
@@ -314,10 +314,10 @@ export default function PasswordsPage() {
             }}
           />
         </div>
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="flex-1 md:flex-none">
                 <Folder className="mr-2 h-4 w-4" />
                 Category
                 {categoryFilter.size > 0 && <span className="ml-2 rounded-full bg-primary px-2 text-xs text-primary-foreground">{categoryFilter.size}</span>}
@@ -338,19 +338,19 @@ export default function PasswordsPage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {selectedIds.size > 0 && (
-              <Button variant="destructive" onClick={handleDeleteSelected}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedIds.size})
-              </Button>
-          )}
           <AddPasswordDialog onAddPassword={handleAddPassword}>
-            <Button>
+            <Button className="flex-1 md:flex-none">
               <PlusCircle className="mr-2 h-4 w-4" />
-              Add Password
+              Add New
             </Button>
           </AddPasswordDialog>
         </div>
+        {selectedIds.size > 0 && (
+            <Button variant="destructive" onClick={handleDeleteSelected} className="w-full md:w-auto">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete ({selectedIds.size})
+            </Button>
+        )}
       </div>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
@@ -385,8 +385,8 @@ export default function PasswordsPage() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Category</TableHead>
+                <TableHead className="hidden md:table-cell">Username</TableHead>
+                <TableHead className="hidden md:table-cell">Category</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -413,15 +413,18 @@ export default function PasswordsPage() {
                       />
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
                         <AppIcon appName={password.appName} className="h-5 w-5" />
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {toTitleCase(password.appName)}
+                      <div className="flex flex-col">
+                        <span>{toTitleCase(password.appName)}</span>
+                        <span className="text-muted-foreground md:hidden">{password.username}</span>
+                      </div>
                     </TableCell>
-                    <TableCell>{password.username}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">{password.username}</TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge variant="outline" className={cn("capitalize border-transparent", getCategoryBadgeColor(password.category))}>{password.category}</Badge>
                     </TableCell>
                     <TableCell>
@@ -476,9 +479,9 @@ export default function PasswordsPage() {
           </Table>
         </CardContent>
         {totalPages > 1 && (
-          <CardFooter className="justify-between">
+          <CardFooter className="flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages}
+              Showing <strong>{paginatedPasswords.length}</strong> of <strong>{filteredPasswords.length}</strong> passwords.
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -490,6 +493,9 @@ export default function PasswordsPage() {
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -529,3 +535,5 @@ export default function PasswordsPage() {
     </>
   );
 }
+
+    
