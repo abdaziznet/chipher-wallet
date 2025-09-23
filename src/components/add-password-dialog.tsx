@@ -26,7 +26,7 @@ import { passwordCategories } from '@/lib/types';
 
 interface AddPasswordDialogProps {
   children: React.ReactNode;
-  onAddPassword: (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => void;
+  onAddPassword: (data: Omit<PasswordEntry, 'id' | 'userId'> & { secretKey: string }) => void;
 }
 
 export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialogProps) {
@@ -37,14 +37,15 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const newPassword = {
+    const data = {
       appName: formData.get('appName') as string,
       username: formData.get('username') as string,
       password: formData.get('password') as string,
       website: formData.get('website') as string,
       category: category,
+      secretKey: formData.get('secretKey') as string,
     };
-    onAddPassword(newPassword);
+    onAddPassword(data);
     setOpen(false);
     formRef.current?.reset();
     setCategory('other');
@@ -93,6 +94,18 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
               <Input
                 id="password"
                 name="password"
+                type="password"
+                className="col-span-3"
+                required
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="secretKey" className="text-right">
+                Secret Key
+              </Label>
+              <Input
+                id="secretKey"
+                name="secretKey"
                 type="password"
                 className="col-span-3"
                 required

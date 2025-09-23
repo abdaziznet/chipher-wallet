@@ -16,15 +16,16 @@ type ActionResult = {
   message?: string;
 };
 
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
-
-
 export async function addPasswordAction(
-  newPassword: Omit<PasswordEntry, 'id'>
+  newPassword: Omit<PasswordEntry, 'id'> & { secretKey: string }
 ): Promise<ActionResult> {
   try {
     if (!newPassword.userId) {
       return { error: 'User not authenticated.' };
+    }
+
+    if (!newPassword.secretKey) {
+        return { error: 'Secret key is required.' };
     }
 
     const existingPasswords = await getPasswords(newPassword.userId);
@@ -37,9 +38,12 @@ export async function addPasswordAction(
       return { error: 'A password for this app name and username already exists.' };
     }
 
-    const encryptedPassword = CryptoJS.AES.encrypt(newPassword.password, ENCRYPTION_KEY).toString();
+    const encryptedPassword = CryptoJS.AES.encrypt(newPassword.password, newPassword.secretKey).toString();
     
-    await addPassword({ ...newPassword, password: encryptedPassword });
+    // Do not store the secret key
+    const { secretKey, ...passwordData } = newPassword;
+    await addPassword({ ...passwordData, password: encryptedPassword });
+
     return { message: 'Password added successfully.' };
   } catch (error) {
     console.error('Failed to add password:', error);
@@ -48,16 +52,19 @@ export async function addPasswordAction(
 }
 
 export async function updatePasswordAction(
-  updatedPassword: PasswordEntry
+  updatedPassword: PasswordEntry,
+  secretKey: string
 ): Promise<ActionResult> {
   try {
      if (!updatedPassword.userId) {
       return { error: 'User not authenticated or unauthorized.' };
     }
 
-    // Assume the password might not be encrypted if it's being updated from the form.
-    // A more robust solution might check if it's already encrypted.
-    const encryptedPassword = CryptoJS.AES.encrypt(updatedPassword.password, ENCRYPTION_KEY).toString();
+    if (!secretKey) {
+      return { error: 'Secret key is required.' };
+    }
+
+    const encryptedPassword = CryptoJS.AES.encrypt(updatedPassword.password, secretKey).toString();
 
     await updatePassword({ ...updatedPassword, password: encryptedPassword });
     return { message: 'Password updated successfully.' };

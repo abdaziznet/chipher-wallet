@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -30,6 +31,13 @@ export function CopyButton({
   }, [hasCopied]);
 
   const handleCopy = () => {
+    if (!valueToCopy) {
+      toast({
+        variant: 'destructive',
+        title: 'Nothing to copy',
+      });
+      return;
+    }
     navigator.clipboard.writeText(valueToCopy);
     setHasCopied(true);
     toast({

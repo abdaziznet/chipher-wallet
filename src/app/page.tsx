@@ -54,7 +54,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddPasswordDialog } from '@/components/add-password-dialog';
-import { CopyButton } from '@/components/copy-button';
+import { DecryptAndCopyDialog } from '@/components/decrypt-and-copy-dialog';
 import type { PasswordEntry, PasswordCategory } from '@/lib/types';
 import { passwordCategories } from '@/lib/types';
 import { AppIcon } from '@/components/app-icon';
@@ -74,7 +74,6 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
-const DECRYPTION_KEY = process.env.NEXT_PUBLIC_EXPORT_ENCRYPTION_KEY || 'default-secret-key';
 
 function toTitleCase(str: string) {
   if (!str) {
@@ -98,18 +97,6 @@ export default function PasswordsPage() {
   const [categoryFilter, setCategoryFilter] = React.useState<Set<PasswordCategory>>(new Set());
   const [deleteTarget, setDeleteTarget] = React.useState<string | string[] | null>(null);
   const [sortConfig, setSortConfig] = React.useState<{ key: keyof PasswordEntry; direction: 'ascending' | 'descending' }>({ key: 'id', direction: 'descending' });
-
-
-  const decryptPassword = (password: string) => {
-    try {
-      const bytes = CryptoJS.AES.decrypt(password, DECRYPTION_KEY);
-      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-      return decrypted || password; // Return original if decryption fails
-    } catch (e) {
-      return password; // Return original on error
-    }
-  };
-
 
   const fetchPasswords = React.useCallback(async () => {
     if (!currentUser) return;
@@ -137,9 +124,9 @@ export default function PasswordsPage() {
     }
   }, [currentUser, router, fetchPasswords]);
 
-  const handleAddPassword = async (newPassword: Omit<PasswordEntry, 'id' | 'userId'>) => {
+  const handleAddPassword = async (data: Omit<PasswordEntry, 'id' | 'userId'> & { secretKey: string }) => {
     if (!currentUser) return;
-    const result = await addPasswordAction({ ...newPassword, userId: currentUser.id });
+    const result = await addPasswordAction({ ...data, userId: currentUser.id });
     if (result.error) {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
@@ -148,9 +135,9 @@ export default function PasswordsPage() {
     }
   };
 
-  const handleEditPassword = async (updatedPassword: PasswordEntry) => {
+  const handleEditPassword = async (updatedPassword: PasswordEntry, secretKey: string) => {
     if (!currentUser) return;
-    const result = await updatePasswordAction({ ...updatedPassword, userId: currentUser.id });
+    const result = await updatePasswordAction({ ...updatedPassword, userId: currentUser.id }, secretKey);
     if (result.error) {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
@@ -436,13 +423,11 @@ export default function PasswordsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        <CopyButton
-                          valueToCopy={decryptPassword(password.password)}
-                          tooltip="Copy password"
-                        >
-                          <KeyRound className="h-4 w-4" />
-                          <span className="sr-only">Copy Password</span>
-                        </CopyButton>
+                        <DecryptAndCopyDialog encryptedPassword={password.password}>
+                           <Button variant="ghost" size="icon" aria-label="Copy password">
+                              <KeyRound className="h-4 w-4" />
+                           </Button>
+                        </DecryptAndCopyDialog>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
