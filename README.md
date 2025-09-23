@@ -42,7 +42,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 First, clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/cipherwallet.git
+git clone https://github.com/abdaziznet/chipher-wallet.git
 cd cipherwallet
 ```
 
