@@ -193,6 +193,13 @@ export default function PasswordsPage() {
     currentPage * PAGE_SIZE
   );
 
+  React.useEffect(() => {
+    // If the current page becomes empty and it's not the first page, go to the previous page.
+    if (paginatedPasswords.length === 0 && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  }, [paginatedPasswords.length, currentPage, totalPages]);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(filteredPasswords.map((p) => p.id)));
@@ -442,5 +449,3 @@ export default function PasswordsPage() {
     </>
   );
 }
-
-    
