@@ -6,6 +6,7 @@ import {
   updatePassword,
   deletePassword,
   deletePasswords,
+  getPasswords,
 } from '@/ai/flows/passwords-flow';
 import type { PasswordEntry } from '@/lib/types';
 import * as CryptoJS from 'crypto-js';
@@ -24,6 +25,16 @@ export async function addPasswordAction(
   try {
     if (!newPassword.userId) {
       return { error: 'User not authenticated.' };
+    }
+
+    const existingPasswords = await getPasswords(newPassword.userId);
+    const isDuplicate = existingPasswords.some(
+      p => p.appName.toLowerCase() === newPassword.appName.toLowerCase() && 
+           p.username.toLowerCase() === newPassword.username.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      return { error: 'A password for this app name and username already exists.' };
     }
 
     const encryptedPassword = CryptoJS.AES.encrypt(newPassword.password, ENCRYPTION_KEY).toString();
