@@ -478,10 +478,9 @@ export default function PasswordsPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={(isOpen) => !isOpen && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete this data?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              password{Array.isArray(deleteTarget) && deleteTarget.length > 1 ? `s (${deleteTarget.length})` : ''} from our servers.
+              This action cannot be undone and the data will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
