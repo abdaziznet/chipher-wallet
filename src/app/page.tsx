@@ -412,7 +412,7 @@ export default function PasswordsPage() {
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                        <AppIcon appName={password.appName} className="h-5 w-5 text-muted-foreground" />
+                        <AppIcon appName={password.appName} className="h-5 w-5" />
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
@@ -527,4 +527,3 @@ export default function PasswordsPage() {
     </>
   );
 }
-

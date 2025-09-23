@@ -1,3 +1,6 @@
+
+'use client';
+
 import { Github, Film, ShoppingCart, Globe, X, Bot, Facebook, Linkedin, Slack } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 
@@ -25,6 +28,14 @@ export function AppIcon({ appName, ...props }: AppIconProps) {
       const IconComponent = iconMap[keyword];
       return <IconComponent {...props} />;
     }
+  }
+
+  const initial = appName.charAt(0).toUpperCase();
+
+  if (initial) {
+    return (
+      <span className="font-bold text-lg text-muted-foreground">{initial}</span>
+    );
   }
   
   return <Globe {...props} />;
