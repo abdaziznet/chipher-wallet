@@ -40,6 +40,16 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AddPasswordDialog } from '@/components/add-password-dialog';
@@ -77,6 +87,7 @@ export default function PasswordsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(true);
   const [categoryFilter, setCategoryFilter] = React.useState<Set<PasswordCategory>>(new Set());
+  const [deleteTarget, setDeleteTarget] = React.useState<string | string[] | null>(null);
 
   const decryptPassword = (password: string) => {
     try {
@@ -138,31 +149,49 @@ export default function PasswordsPage() {
     }
   };
 
-  const handleDeletePassword = async (id: string) => {
-    const result = await deletePasswordAction(id);
-     if (result.error) {
-      toast({ variant: 'destructive', title: 'Error', description: result.error });
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    if (Array.isArray(deleteTarget)) {
+      // Multiple items deletion
+      const ids = deleteTarget;
+      const result = await deletePasswordsAction(ids);
+      if (result.error) {
+        toast({ variant: 'destructive', title: 'Error', description: result.error });
+      } else {
+        await fetchPasswords();
+        toast({
+          title: `${ids.length} Passwords Deleted`,
+          description: 'The selected passwords have been removed.',
+        });
+        setSelectedIds(new Set());
+      }
     } else {
-      await fetchPasswords();
-      toast({
-        title: 'Password Deleted',
-        description: 'The password has been successfully removed.',
-      });
+      // Single item deletion
+      const id = deleteTarget;
+      const result = await deletePasswordAction(id);
+      if (result.error) {
+        toast({ variant: 'destructive', title: 'Error', description: result.error });
+      } else {
+        await fetchPasswords();
+        toast({
+          title: 'Password Deleted',
+          description: 'The password has been successfully removed.',
+        });
+      }
     }
+    setDeleteTarget(null);
   };
 
-  const handleDeleteSelected = async () => {
+
+  const handleDeletePassword = (id: string) => {
+    setDeleteTarget(id);
+  };
+
+  const handleDeleteSelected = () => {
     const ids = Array.from(selectedIds);
-    const result = await deletePasswordsAction(ids);
-    if (result.error) {
-      toast({ variant: 'destructive', title: 'Error', description: result.error });
-    } else {
-      await fetchPasswords();
-      toast({
-        title: `${selectedIds.size} Passwords Deleted`,
-        description: 'The selected passwords have been removed.',
-      });
-      setSelectedIds(new Set());
+    if (ids.length > 0) {
+      setDeleteTarget(ids);
     }
   };
 
@@ -446,6 +475,23 @@ export default function PasswordsPage() {
           onOpenChange={(isOpen) => !isOpen && setPasswordToEdit(null)}
         />
       )}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(isOpen) => !isOpen && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              password{Array.isArray(deleteTarget) && deleteTarget.length > 1 ? `s (${deleteTarget.length})` : ''} from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
