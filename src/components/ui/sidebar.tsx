@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -323,6 +324,15 @@ const SidebarInset = React.forwardRef<
       ref={ref}
       className={cn(
         "relative flex min-h-svh flex-1 flex-col bg-background",
+        "md:peer-data-[state=expanded]:peer-data-[side=left]:pl-[--sidebar-width]",
+        "md:peer-data-[state=expanded]:peer-data-[side=right]:pr-[--sidebar-width]",
+        "md:peer-data-[collapsible=icon]:peer-data-[state=expanded]:peer-data-[variant=inset]:pl-[--sidebar-width]",
+        "md:peer-data-[collapsible=icon]:peer-data-[state=expanded]:peer-data-[variant=floating]:pl-[--sidebar-width]",
+        "md:peer-data-[collapsible=icon]:peer-data-[state=collapsed]:peer-data-[side=left]:pl-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        "md:peer-data-[collapsible=icon]:peer-data-[state=collapsed]:peer-data-[side=right]:pr-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+        "md:peer-data-[collapsible=icon]:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:pl-[--sidebar-width-icon]",
+        "md:peer-data-[collapsible=offcanvas]:peer-data-[state=expanded]:peer-data-[side=left]:pl-[--sidebar-width]",
+        "md:peer-data-[collapsible=offcanvas]:peer-data-[state=expanded]:peer-data-[side=right]:pr-[--sidebar-width]",
         "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
         className
       )}
@@ -761,3 +771,5 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
+    
