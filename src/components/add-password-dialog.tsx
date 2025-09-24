@@ -84,7 +84,7 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
               <Input
                 id="appName"
                 name="appName"
-                defaultValue="New App"
+                placeholder="e.g. Google"
                 className="col-span-3"
                 required
               />
@@ -96,7 +96,7 @@ export function AddPasswordDialog({ children, onAddPassword }: AddPasswordDialog
               <Input
                 id="username"
                 name="username"
-                defaultValue="user@email.com"
+                placeholder="e.g. user@gmail.com"
                 className="col-span-3"
                 required
               />
