@@ -76,15 +76,6 @@ import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = Number(process.env.NEXT_PUBLIC_PAGE_SIZE) || 5;
 
-function toTitleCase(str: string) {
-  if (!str) {
-    return '';
-  }
-  return str.replace(/\w\S*/g, function(txt) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-  });
-}
-
 export default function PasswordsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [passwords, setPasswords] = React.useState<PasswordEntry[]>([]);
@@ -419,7 +410,7 @@ export default function PasswordsPage() {
                     </TableCell>
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
-                        <span>{toTitleCase(password.appName)}</span>
+                        <span>{password.appName}</span>
                         <span className="text-muted-foreground md:hidden">{password.username}</span>
                       </div>
                     </TableCell>
@@ -535,5 +526,3 @@ export default function PasswordsPage() {
     </>
   );
 }
-
-    
