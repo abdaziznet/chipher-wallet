@@ -123,7 +123,7 @@ export default function PasswordsPage() {
       toast({ variant: 'destructive', title: 'Error', description: result.error });
     } else {
       await fetchPasswords();
-      toast({ title: 'Success', description: 'Password added successfully.' });
+      toast({ variant: 'success', title: 'Success', description: 'Password added successfully.' });
     }
   };
 
@@ -135,7 +135,7 @@ export default function PasswordsPage() {
     } else {
       await fetchPasswords();
       setPasswordToEdit(null);
-      toast({ title: 'Success', description: 'Password updated successfully.' });
+      toast({ variant: 'success', title: 'Success', description: 'Password updated successfully.' });
     }
   };
 
@@ -151,6 +151,7 @@ export default function PasswordsPage() {
       } else {
         await fetchPasswords();
         toast({
+          variant: 'success',
           title: `${ids.length} Passwords Deleted`,
           description: 'The selected passwords have been removed.',
         });
@@ -165,6 +166,7 @@ export default function PasswordsPage() {
       } else {
         await fetchPasswords();
         toast({
+          variant: 'success',
           title: 'Password Deleted',
           description: 'The password has been successfully removed.',
         });

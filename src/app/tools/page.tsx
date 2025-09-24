@@ -44,7 +44,7 @@ export default function ToolsPage() {
 
   const handleEncrypt = () => {
     if (!encryptInput || !encryptKey) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Please provide both text and a key to encrypt.' });
+      toast({ variant: 'warning', title: 'Error', description: 'Please provide both text and a key to encrypt.' });
       return;
     }
     try {
@@ -57,7 +57,7 @@ export default function ToolsPage() {
 
   const handleDecrypt = () => {
     if (!decryptInput || !decryptKey) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Please provide both encrypted text and a key to decrypt.' });
+      toast({ variant: 'warning', title: 'Error', description: 'Please provide both encrypted text and a key to decrypt.' });
       return;
     }
     try {

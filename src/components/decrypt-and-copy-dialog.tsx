@@ -31,7 +31,7 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
 
   const handleCopy = async () => {
     if (!encryptedPassword || !secretKey) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Secret key is required.' });
+      toast({ variant: 'warning', title: 'Error', description: 'Secret key is required.' });
       return;
     }
 
@@ -44,7 +44,7 @@ export function DecryptAndCopyDialog({ children, encryptedPassword }: DecryptAnd
       }
 
       await navigator.clipboard.writeText(decrypted);
-      toast({ title: 'Success', description: 'Password copied to clipboard.' });
+      toast({ variant: 'success', title: 'Success', description: 'Password copied to clipboard.' });
       setOpen(false); // Close dialog on success
 
     } catch (e) {

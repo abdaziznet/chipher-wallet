@@ -53,7 +53,7 @@ export function EditPasswordDialog({
 
   const handleDecryptForEditing = () => {
     if (!secretKey) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Secret key is required to decrypt for editing.' });
+        toast({ variant: 'warning', title: 'Error', description: 'Secret key is required to decrypt for editing.' });
         return;
     }
     try {
@@ -62,7 +62,7 @@ export function EditPasswordDialog({
       if (!decrypted) throw new Error("Decryption failed");
       setDecryptedPassword(decrypted);
       setIsDecrypted(true);
-      toast({ title: 'Success', description: 'Password decrypted. You can now edit it.' });
+      toast({ variant: 'success', title: 'Success', description: 'Password decrypted. You can now edit it.' });
     } catch {
       toast({ variant: 'destructive', title: 'Decryption Failed', description: 'Could not decrypt password. Check the secret key.' });
     }
@@ -71,7 +71,7 @@ export function EditPasswordDialog({
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!isDecrypted) {
-        toast({ variant: 'destructive', title: 'Not Decrypted', description: 'Please decrypt the password before saving changes.' });
+        toast({ variant: 'warning', title: 'Not Decrypted', description: 'Please decrypt the password before saving changes.' });
         return;
     }
     const formData = new FormData(event.currentTarget);

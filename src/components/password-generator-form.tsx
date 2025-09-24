@@ -45,6 +45,7 @@ export function PasswordGeneratorForm() {
     } else if (result.password) {
       setGeneratedPassword(result.password);
       toast({
+        variant: 'success',
         title: 'Password Generated',
         description: 'A new secure password has been created.',
       });

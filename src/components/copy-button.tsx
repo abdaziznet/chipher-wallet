@@ -33,7 +33,7 @@ export function CopyButton({
   const handleCopy = () => {
     if (!valueToCopy) {
       toast({
-        variant: 'destructive',
+        variant: 'warning',
         title: 'Nothing to copy',
       });
       return;
@@ -41,6 +41,7 @@ export function CopyButton({
     navigator.clipboard.writeText(valueToCopy);
     setHasCopied(true);
     toast({
+      variant: 'success',
       title: 'Copied to clipboard!',
       description: 'The value has been successfully copied.',
     });
