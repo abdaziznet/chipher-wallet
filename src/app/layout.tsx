@@ -16,12 +16,13 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Home, Wrench, ShieldCheck, ShieldEllipsis } from 'lucide-react';
+import { Home, Wrench, ShieldEllipsis } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
 import { SessionProvider, useSession } from '@/contexts/session-context';
 import React from 'react';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ThemeToggle } from '@/components/theme-toggle';
+import Image from 'next/image';
 
 
 function AppContent({
@@ -76,7 +77,12 @@ function AppContent({
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center gap-2 font-headline">
-              <ShieldCheck className="h-6 w-6 text-primary" />
+              <Image
+                src="https://i.imgur.com/Q7axrSm.png"
+                alt="CipherWallet Logo"
+                width={28}
+                height={28}
+              />
               <h1 className="text-xl font-semibold">CipherWallet</h1>
             </div>
           </SidebarHeader>
