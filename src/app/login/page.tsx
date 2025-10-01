@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card';
 import { useSession } from '@/contexts/session-context';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck } from 'lucide-react';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -47,7 +46,19 @@ export default function LoginPage() {
       <Card>
         <CardHeader className="text-center">
           <div className="flex justify-center items-center mb-4">
-            <ShieldCheck className="h-8 w-8 text-primary" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-8 w-8 text-primary"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome to CipherWallet</CardTitle>
           <CardDescription>Sign in with your Google account to continue</CardDescription>
