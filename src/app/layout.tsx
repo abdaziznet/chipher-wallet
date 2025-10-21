@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import './globals.css';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Toaster } from '@/components/ui/toaster';
+import "./globals.css";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Toaster } from "@/components/ui/toaster";
 import {
   Sidebar,
   SidebarContent,
@@ -15,15 +14,14 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Home, Wrench, ShieldEllipsis } from 'lucide-react';
-import { UserNav } from '@/components/user-nav';
-import { SessionProvider, useSession } from '@/contexts/session-context';
-import React from 'react';
-import { ThemeProvider } from '@/components/theme-provider';
-import { ThemeToggle } from '@/components/theme-toggle';
-import Image from 'next/image';
-
+} from "@/components/ui/sidebar";
+import { Home, Wrench, ShieldEllipsis } from "lucide-react";
+import { UserNav } from "@/components/user-nav";
+import { SessionProvider, useSession } from "@/contexts/session-context";
+import React from "react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
+import Image from "next/image";
 
 function AppContent({
   children,
@@ -35,17 +33,27 @@ function AppContent({
   const { currentUser, isLoaded } = useSession();
 
   const allNavItems = [
-    { href: '/', label: 'All Passwords', icon: Home, roles: ['admin', 'guest'] },
-    { href: '/generator', label: 'Password Generator', icon: ShieldEllipsis, roles: ['admin', 'guest'] },
-    { href: '/tools', label: 'Tools', icon: Wrench, roles: ['admin'] },
+    {
+      href: "/",
+      label: "All Passwords",
+      icon: Home,
+      roles: ["admin", "guest"],
+    },
+    {
+      href: "/generator",
+      label: "Password Generator",
+      icon: ShieldEllipsis,
+      roles: ["admin", "guest"],
+    },
+    { href: "/tools", label: "Tools", icon: Wrench, roles: ["admin"] },
   ];
-  
+
   React.useEffect(() => {
     if (isLoaded) {
-      if (currentUser && pathname === '/login') {
-        router.push('/');
-      } else if (!currentUser && pathname !== '/login') {
-        router.push('/login');
+      if (currentUser && pathname === "/login") {
+        router.push("/");
+      } else if (!currentUser && pathname !== "/login") {
+        router.push("/login");
       }
     }
   }, [isLoaded, currentUser, pathname, router]);
@@ -56,18 +64,20 @@ function AppContent({
     </div>
   );
 
-  if (!isLoaded || (!currentUser && pathname !== '/login')) {
+  if (!isLoaded || (!currentUser && pathname !== "/login")) {
     return renderLoading();
   }
-  
-  if (pathname === '/login') {
+
+  if (pathname === "/login") {
     return (
-      <main className="flex h-screen items-center justify-center">{children}</main>
-    )
+      <main className="flex h-screen items-center justify-center">
+        {children}
+      </main>
+    );
   }
 
-  const navItems = allNavItems.filter(item => 
-    currentUser && item.roles.includes(currentUser.role)
+  const navItems = allNavItems.filter(
+    (item) => currentUser && item.roles.includes(currentUser.role)
   );
 
   return (
@@ -109,8 +119,8 @@ function AppContent({
           <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
             <SidebarTrigger className="md:hidden" />
             <div className="flex items-center gap-4 ml-auto">
-               <ThemeToggle />
-               <UserNav />
+              <ThemeToggle />
+              <UserNav />
             </div>
           </header>
           <main className="flex-1 p-4 sm:px-6 sm:py-6">{children}</main>
@@ -129,8 +139,20 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <title>CipherWallet</title>
-        <meta name="description" content="A modern and secure password manager." />
+        <meta
+          name="description"
+          content="A modern and secure password manager."
+        />
+        {/* ✅ Tambahan untuk PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#4B6EAE" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <meta name="application-name" content="CipherWallet" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="CipherWallet" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <SessionProvider>
